@@ -17,7 +17,7 @@
     },
     "PREPROCESSED_DATASET_DIRECTORY": "./data/data_preprocessed/",
     "TRAINED_MODELS_DIR": "./models/",
-    "RESULTS_DIR": "./reproducibility/results/"
+    "RESULTS_DIR": "./reproducibility/results/",
         "STEAD_WAVEFORMS_HDF5_PATH": "./data/stead/waveforms.hdf5",
         "STEAD_METADATA_CSV_PATH": "./data/stead/metadata.csv",
         "INSTANCE_NOISE_WAVEFORMS_HDF5_PATH": "./data/instance/noise/waveforms.hdf5",

@@ -40,21 +40,22 @@ def tw_2_npy(processed_stream,stream_path):
 
 # READ THE STREAM
 stream_path="/home/ege/KAVV2324.mseed"
-stream = read(stream_path)
 
+def ms2np(stream_path):
 # PRE-PROCESSING 
-stream_copy=stream.copy()
-stream_copy.merge()
-print("Initial Stream:",stream_copy)
-
-#Re-create a stream with chosen traces. Uncomment the line below if you rather use all traces in your stream.
-#chosen_stream = stream_copy.copy()
-chosen_stream=obspy.Stream(traces=[stream_copy[3],stream_copy[4],stream_copy[5]])
-print("Stream chosen for preprocessing:", chosen_stream)
-
-processed_stream=chosen_stream.copy()
-processed_stream.filter("bandpass", freqmin=1,freqmax=20)
-processed_stream.normalize()
-
-# SAVE STREAM AS .npy
-tw_2_npy(processed_stream,stream_path)
+    stream = read(stream_path)
+    stream_copy=stream.copy()
+    stream_copy.merge()
+    print("Initial Stream:",stream_copy)
+    
+    #Re-create a stream with chosen traces. Uncomment the line below if you rather use all traces in your stream.
+    chosen_stream = stream_copy.copy()
+    #chosen_stream=obspy.Stream(traces=[stream_copy[3],stream_copy[4],stream_copy[5]])
+    print("Stream chosen for preprocessing:", chosen_stream)
+    
+    processed_stream=chosen_stream.copy()
+    processed_stream.filter("bandpass", freqmin=1,freqmax=20)
+    processed_stream.normalize()
+    
+    # SAVE STREAM AS .npy
+    tw_2_npy(processed_stream,stream_path)
