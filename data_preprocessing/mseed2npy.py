@@ -49,6 +49,9 @@ def ms2np(stream_path,save_path):
     stream = read(stream_path)
     stream_copy=stream.copy()
     stream_copy.merge()
+    # Resample all traces to a fixed rate if they’re inconsistent 
+    for tr in stream_copy:
+        tr.resample(100)
     print("Initial Stream:",stream_copy)
     
     #Re-create a stream with traces that are not masked.
