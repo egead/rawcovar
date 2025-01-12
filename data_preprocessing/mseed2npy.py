@@ -1,5 +1,5 @@
 '''
-This script seperates any given mseed data into default 30 seconds waveforms, 
+Functions in this module seperates any given mseed data into default 30 seconds waveforms, 
 applies preprocessing, and saves it as .npy file 
 
 ABOUT PRE-PROCESSING: 
@@ -24,7 +24,7 @@ def create_time_windows(tr, start_time, end_time):
         time_windows.append(time_window) 
     return time_windows
 
-def tw_2_npy(processed_stream,stream_path):
+def tw_2_npy(processed_stream,stream_path,save_path):
 
     tw_lst=[]
     for i in range(len(processed_stream.traces)):
@@ -38,11 +38,14 @@ def tw_2_npy(processed_stream,stream_path):
     print('Stream saved at: ', save_path)
 
 
-# READ THE STREAM
-stream_path="/home/ege/KAVV2324.mseed"
-
-def ms2np(stream_path):
-# PRE-PROCESSING 
+def ms2np(stream_path,save_path):
+    '''
+    PATH Parameter Examples:
+    stream_path="/home/ege/KAVV2324.mseed"
+    save_path=stream_path.split('/')[-1].split('.')[-2]+'.npy'
+    '''
+    
+    # PRE-PROCESSING 
     stream = read(stream_path)
     stream_copy=stream.copy()
     stream_copy.merge()
@@ -58,4 +61,4 @@ def ms2np(stream_path):
     processed_stream.normalize()
     
     # SAVE STREAM AS .npy
-    tw_2_npy(processed_stream,stream_path)
+    tw_2_npy(processed_stream,stream_path,save_path)
