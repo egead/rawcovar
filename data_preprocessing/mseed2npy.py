@@ -51,9 +51,10 @@ def ms2np(stream_path,save_path):
     stream_copy.merge()
     print("Initial Stream:",stream_copy)
     
-    #Re-create a stream with chosen traces. Uncomment the line below if you rather use all traces in your stream.
-    chosen_stream = stream_copy.copy()
-    #chosen_stream=obspy.Stream(traces=[stream_copy[3],stream_copy[4],stream_copy[5]])
+    #Re-create a stream with traces that are not masked.
+    split_stream = stream_copy.split()
+    chosen_stream=obspy.Stream(traces=[tr for tr in split_stream if not np.ma.is_masked(tr.data)])
+
     print("Stream chosen for preprocessing:", chosen_stream)
     
     processed_stream=chosen_stream.copy()
