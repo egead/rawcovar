@@ -33,7 +33,8 @@ def tw_2_npy(processed_stream,stream_path,save_path):
 
     stream_numpy=np.stack(tw_lst, axis=-1)
 
-    save_path=stream_path.split('/')[-1].split('.')[-2]+'.npy'
+    #Outdated version, now save_path's are created beforehand
+    #save_path=stream_path.split('/')[-1].split('.')[-2]+'.npy'
     np.save(save_path,stream_numpy)
     print('Stream saved at: ', save_path)
 

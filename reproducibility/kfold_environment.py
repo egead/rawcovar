@@ -19,6 +19,7 @@ from directory import (
     INSTANCE_NOISE_WAVEFORMS_HDF5_PATH,
     INSTANCE_EQ_METADATA_CSV_PATH,
     INSTANCE_NOISE_METADATA_CSV_PATH,
+    RAW_WAVEFORMS_HDF5_PATH,
     PREPROCESSED_DATASET_DIRECTORY,
 )
 
@@ -51,6 +52,8 @@ class KFoldEnvironment:
         The time window of the STEAD dataset.
     instance_time_window : float
         The time window of the instance dataset.
+    raw_time_window : float
+        The time window of the raw dataset.
     stead_waveforms_hdf5 : str
         The path of the hdf5 file for the STEAD dataset that contains the waveforms of the events.
     stead_metadata_csv : str
@@ -59,6 +62,8 @@ class KFoldEnvironment:
         The path of the hdf5 file for the instance dataset that contains the waveforms of the events.
     instance_no_waveforms_hdf5 : str
         The path of the hdf5 file for the instance dataset that contains the waveforms of the noise.
+    raw_waveforms_hdf5 : str
+        The path of the hdf5 file for the raw dataset that contains the waveforms of the events.
     instance_eq_metadata_csv : str
         The path of the csv file for the instance dataset that contains the metadata of the events.
     instance_no_metadata_csv : str
@@ -93,12 +98,14 @@ class KFoldEnvironment:
         batch_size=BATCH_SIZE,
         stead_time_window=STEAD_TIME_WINDOW,
         instance_time_window=INSTANCE_TIME_WINDOW,
+        raw_time_window=RAW_TIME_WINDOW,
         stead_waveforms_hdf5=STEAD_WAVEFORMS_HDF5_PATH,
         stead_metadata_csv=STEAD_METADATA_CSV_PATH,
         instance_eq_waveforms_hdf5=INSTANCE_EQ_WAVEFORMS_HDF5_PATH,
         instance_no_waveforms_hdf5=INSTANCE_NOISE_WAVEFORMS_HDF5_PATH,
         instance_eq_metadata_csv=INSTANCE_EQ_METADATA_CSV_PATH,
         instance_no_metadata_csv=INSTANCE_NOISE_METADATA_CSV_PATH,
+        raw_waveforms_hdf5=RAW_WAVEFORMS_HDF5_PATH,
         model_time_window=30.0,
         phase_ensured_crop_ratio=PHASE_PICK_ENSURED_CROP_RATIO,
         phase_ensuring_margin=PHASE_ENSURING_MARGIN,
@@ -143,6 +150,10 @@ class KFoldEnvironment:
             self.no_hdf5_path = instance_no_waveforms_hdf5
             self.last_axis = "timesteps"
             self.dataset_time_window = self.instance_time_window
+        
+        if dataset == "raw": 
+            self.raw_waveforms_hdf5 = raw_waveforms_hdf5
+            self.dataset_time_window = self.raw_time_window
 
         # This function returns two list of lists. Each list is a chunk list for a split.
         # First list is for training and validation while the second list is for testing.

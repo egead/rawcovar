@@ -15,9 +15,6 @@ from tensorflow.keras.callbacks import LambdaCallback
 
 # Paths to your data
 TRAIN_DATA_PATH = 'data/X_train_1280sample.npy'  # Replace with your actual path
-TEST_DATA_PATH = 'data/X_test_1280sample.npy'  # Replace with your actual path
-TRAIN_LABEL_PATH = 'data/Y_train_1280sample.npy'  # Replace with your actual path
-TEST_LABEL_PATH = 'data/Y_test_1280sample.npy'  # Replace with your actual path
 
 # Directory to save checkpoints
 CHECKPOINT_DIR = 'checkpoints'
