@@ -64,6 +64,7 @@ class BatchGenerator:
         batch_metadata (pd.DataFrame): Dataframe that contains the metadata of the waveforms.
         eq_hdf5_path (str): Path of the hdf5 file that contains the waveforms of the eq events.
         no_hdf5_path (str): Path of the hdf5 file that contains the waveforms of the no events.
+        raw_hdf5_path (str): Path of the hdf5 file that contains the raw waveforms.
         dataset_time_window (float): The time window of the dataset.
         model_time_window (float): The time window of the model.
         sampling_freq (int): Sampling frequency.
@@ -78,12 +79,14 @@ class BatchGenerator:
         batch_metadata=pd.DataFrame(),
         eq_hdf5_path="",
         no_hdf5_path="",
+        raw_hdf5_path="",
         dataset_time_window=120.0,
         model_time_window=30.0,
         sampling_freq=SAMPLING_FREQ,
         freqmin=FREQMIN,
         freqmax=FREQMAX,
         last_axis="channels",
+        dataset_type="stead" 
     ):
         self.batch_size = batch_size
         self.dataset_time_window = dataset_time_window
@@ -92,8 +95,12 @@ class BatchGenerator:
         self.freqmin = freqmin
         self.freqmax = freqmax
         self.last_axis = last_axis
+        self.dataset_type = dataset_type
+        
         self.eq_hdf5_path = eq_hdf5_path
         self.no_hdf5_path = no_hdf5_path
+        self.raw_hdf5_path = raw_hdf5_path
+        
 
         self.f = np.fft.fftfreq(
             self._get_ts(self.dataset_time_window), 1.0 / sampling_freq
@@ -314,6 +321,7 @@ class DataGenerator(Sequence):
             the phase arrival times.
         eq_hdf5_path (str): Path of the hdf5 file that contains the waveforms of the eq events.
         no_hdf5_path (str): Path of the hdf5 file that contains the waveforms of the no events.
+        raw_hdf5_path (str): Path of the hdf5 file that contains the raw waveforms.
         meta_parser (MetaParser): MetaParser instance that is used to parse the metadata.
         dataset_time_window (float): The time window of the dataset.
         model_time_window (float): The time window of the model.
