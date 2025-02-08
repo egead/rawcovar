@@ -6,6 +6,7 @@ from os.path import exists
 from tensorflow.keras.utils import Sequence
 from config import BATCH_SIZE, SAMPLING_FREQ, FREQMIN, FREQMAX
 
+# CURRENTLY, BATCH GENERATOR IN THIS FILE IS INCOMPLETE (FOR RAW DATA) AND WILL NEED TO BE REVISED LATER!
 class GeneratorWrapper(Sequence):
     """
     GeneratorWrapper is a wrapper class for DataGenerator class. It is used to
