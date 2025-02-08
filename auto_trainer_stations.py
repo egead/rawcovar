@@ -28,7 +28,7 @@ LEARNING_RATE = 1e-3
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
 
-def train_save_model(model,EPOCHS,BATCH_SIZE):
+def train_save_model(model,X_train, epochs,batch_size):
     # ============================
     # Model Compilation
     # ============================
