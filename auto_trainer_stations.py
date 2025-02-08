@@ -15,10 +15,10 @@ from tensorflow.keras.callbacks import LambdaCallback
 # ============================
 
 DATA_BASE_PATH = 'data/silivri'  # Base directory containing station folders
+CHECKPOINT_DIR = 'checkpoints'# Directory to save checkpoints
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
-# Directory to save checkpoints
-CHECKPOINT_DIR = 'checkpoints'
+
 
 # Training parameters
 EPOCHS = 50
