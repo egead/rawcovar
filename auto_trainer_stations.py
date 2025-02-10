@@ -56,7 +56,7 @@ def train_save_model(model,X_train, epochs,batch_size):
             verbose=1
         ),
         keras.callbacks.EarlyStopping(
-            monitor='val_loss',
+            monitor='loss',
             patience=2,
             restore_best_weights=True,
             verbose=1
