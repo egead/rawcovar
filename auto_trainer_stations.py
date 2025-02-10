@@ -41,13 +41,13 @@ def train_save_model(model,X_train, epochs,batch_size):
     # Define callbacks for saving checkpoints, early stopping.
 
     #Define callback for saving activations in each layer
-    stored_activations = {}
-    activation_callback = LambdaCallback(
-        on_epoch_end=lambda epoch, logs: [stored_activations.setdefault(layer.name, []).append(
-                tf.keras.Model(inputs=model.input,outputs=layer.output).predict(x_val)
-            ) for layer in model.layers if layer.name in layer_names
-        ]
-    )
+    #stored_activations = {}
+    #activation_callback = LambdaCallback(
+     #   on_epoch_end=lambda epoch, logs: [stored_activations.setdefault(layer.name, []).append(
+      #          tf.keras.Model(inputs=model.input,outputs=layer.output).predict(x_val)
+       #     ) for layer in model.layers if layer.name in layer_names
+        #]
+    #)
     callbacks = [
         keras.callbacks.ModelCheckpoint(
             filepath=os.path.join(CHECKPOINT_DIR, model.name+'_epoch_{epoch:02d}.h5'),
@@ -60,8 +60,8 @@ def train_save_model(model,X_train, epochs,batch_size):
             patience=2,
             restore_best_weights=True,
             verbose=1
-        ),
-        activation_callback
+        )
+     #   ,activation_callback
     ]
 
     fit_result = model.fit(X_train, 
