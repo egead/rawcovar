@@ -27,7 +27,7 @@ SAMPLING_FREQ = 100
 # The time window of the data. Different datasets have different time windows.
 INSTANCE_TIME_WINDOW = 120.0
 STEAD_TIME_WINDOW = 60.0
-
+RAW_TIME_WINDOW = 30.0
 # Change this factor if you want to use less data for training, testing and validation.
 SUBSAMPLING_FACTOR = 1.0
 

@@ -25,7 +25,7 @@
         "INSTANCE_EQ_WAVEFORMS_HDF5_PATH": "./data/instance/events/waveforms.hdf5",
         "INSTANCE_NOISE_METADATA_CSV_PATH": "./data/instance/noise/metadata.csv",
         "INSTANCE_EQ_METADATA_CSV_PATH": "./data/instance/events/metadata.csv"
-    },
+    ,
     "PREPROCESSED_DATASET_DIRECTORY": "./data/data_preprocessed",
     "TRAINED_MODELS_DIR": "./data/models",
     "RESULTS_DIR": "./reproducibility/results"
