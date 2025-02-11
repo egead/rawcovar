@@ -4,6 +4,7 @@ from config import (
     DATASET_CHUNKS,
     INSTANCE_TIME_WINDOW,
     STEAD_TIME_WINDOW,
+    RAW_TIME_WINDOW,
     SAMPLING_FREQ,
     FREQMIN,
     FREQMAX,
