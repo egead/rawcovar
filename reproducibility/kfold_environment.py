@@ -22,6 +22,8 @@ from directory import (
     INSTANCE_NOISE_METADATA_CSV_PATH,
     RAW_WAVEFORMS_HDF5_PATH,
     RAW_WAVEFORMS_MSEED_PATH,
+    #RAW_WAVEFORMS_METADATA_PATH, 
+    #ADD RAW METADATA LATER
     PREPROCESSED_DATASET_DIRECTORY,
 )
 
@@ -157,7 +159,19 @@ class KFoldEnvironment:
         if dataset == "raw": 
             metadata = self._parse_raw_metadata(raw_waveforms_mseed)
             self.raw_waveforms_hdf5 = raw_waveforms_hdf5
+            self.last_axis = "timesteps"
             self.dataset_time_window = self.raw_time_window
+
+        def _parse_raw_metadata(self):
+            # To be updated
+            """
+            Parse metadata from raw file
+            To be added later: 
+                Parse metadata from mseed or hdf5? 
+            """
+            metadata = []
+            
+            return pd.DataFrame(metadata)
 
         # This function returns two list of lists. Each list is a chunk list for a split.
         # First list is for training and validation while the second list is for testing.
@@ -464,6 +478,10 @@ class KFoldEnvironment:
         standardized_metadata = pd.concat([eq_metadata, no_metadata])
         return standardized_metadata
 
+    def _parse_raw_metadata(self,raw_hdf5_path):
+        # Will be edited later 
+        return None
+
     def _make_chunk_metadata_multiple_of_batch_size(self, chunk_metadata_list):
         """
         Makes the chunk metadata lengths multiple of batch size by cropping leap rows.
@@ -603,6 +621,7 @@ class KFoldEnvironment:
         return metadata
 
     def _assign_crop_offsets(self, metadata):
+        # To add: RAW DATA METADATA IMPLEMENTATION 
         """
         Args:
             metadata (pd.DataFrame): Dataframe that contains the metadata of the waveforms.
