@@ -6,7 +6,7 @@ from obspy.core import UTCDateTime
 import h5py
 import numpy as np
 
-stream = read("/home/ege/Documents/EARTH-ML/06to13Feb2023Data/Package_1718468318642.mseed")
+stream = read("/home/boxx/Public/earthquake_model_evaluations/data/SilivriPaper_2019-09-01__2019-11-30/prepared_waveforms/day_by_day/ADVT/KO.ADVT..HHE__20190831T235957120000Z__20190902T000002810000Z.mseed")
 
 segment_length = 30 # seconds
 print(f'Preparing waveforms... {segment_length} time windows.')

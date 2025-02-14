@@ -38,6 +38,7 @@ import pandas as pd
 import random
 import numpy as np
 from sklearn.model_selection import KFold
+import obspy
 
 class KFoldEnvironment:
     """
@@ -161,6 +162,58 @@ class KFoldEnvironment:
             self.raw_waveforms_hdf5 = raw_waveforms_hdf5
             self.last_axis = "timesteps"
             self.dataset_time_window = self.raw_time_window
+        
+        def _create_raw_hdf5(self, output_path):
+            '''
+            Creates HDF5 file for raw data if it doesn't already exist.
+            '''
+            if not exists(output_path):
+                self._convert_mseed_to_hdf5(
+                    mseed_files=RAW_WAVEFORMS_MSEED_PATH,
+                    output_file=output_path,
+                    segment_length=RAW_TIME_WINDOW
+                )
+        def _convert_mseed_to_hdf5(self, mseed_files, output_file, segment_length):
+            '''
+            Converts mseed files to HDF5
+            '''
+            with h5py.File(output_file,'w') as hdf:
+                data_grp = hdf.create_group('data')
+
+                # This loop may need to be modified to make it more consistent with different directory structures
+                for mseed in mseed_files: 
+                    st = obspy.read(mseed)
+                    for tr in st:
+                        self._process_trace(tr, data_grp, segment_length)
+
+        def _process_trace(self, tr, data_grp, segment_length):
+            start_time = tr.stats.starttime
+            while start_time + segment_length <= tr.stats.endtime:
+                end_time = start_time + segment_length
+                segment = tr.slice(start_time,end_time)
+
+                # This approach may be updated later
+                if segment.stats.npts == int(segment_length * tr.stats.sampling_rate):
+                    seg_id = f"{trace.id}_{start.timestamp:.0f}"
+                    self._store_segment(segment, data_grp, seg_id)
+                    
+                start += segment_length
+
+        def _store_segment(self, segment, parent_group, seg_id):
+            grp = parent_group.create_group(seg_id)
+            grp.create_dataset('data', data=segment.data.astype('float32'))
+            
+            # Match STEAD's naming convention
+            grp.attrs.update({
+                'trace_name': seg_id,
+                'station_name': segment.stats.station,
+                'network': segment.stats.network,
+                'receiver_code': segment.stats.channel,
+                'trace_start_time': segment.stats.starttime.timestamp,
+                'p_arrival_sample': -1,
+                's_arrival_sample': -1,
+                'label': 'raw'
+            })
 
         def _parse_raw_metadata(self):
             # To be updated
