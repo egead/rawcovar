@@ -229,7 +229,14 @@ class KFoldEnvironment:
 
                     metadata.append({
                         'trace_name': seg_id,
-                        #To be updated later
+                        'station_name': seg_metadata['station'].decode(),
+                        'network': seg_metadata['network'].decode(),
+                        'channel': seg_metadata['channel'].decode(),
+                        'starttime': seg_metadata['starttime'],
+                        'endtime': seg_metadata['endtime'],
+                        'sampling_rate': seg_metadata['sampling_rate'],
+                        'segment_length': seg_metadata['segment_length'],
+                        'label': 'raw'
                     })
             
             return pd.DataFrame(metadata)
