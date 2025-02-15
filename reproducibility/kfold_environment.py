@@ -215,14 +215,22 @@ class KFoldEnvironment:
                 'label': 'raw'
             })
 
-        def _parse_raw_metadata(self):
+        def _parse_raw_metadata(self,raw_hdf5_path):
             # To be updated
             """
             Parse metadata from raw file
-            To be added later: 
-                Parse metadata from mseed or hdf5? 
+             
             """
             metadata = []
+            with h5py.File(raw_hdf5_path,'r') as hdf: 
+                for seg_id in hdf['data']:
+                    seg_grp = hdf[f'data/{seg_id}']
+                    seg_metadata = seg_grp['metadata'][()]
+
+                    metadata.append({
+                        'trace_name': seg_id,
+                        #To be updated later
+                    })
             
             return pd.DataFrame(metadata)
 
