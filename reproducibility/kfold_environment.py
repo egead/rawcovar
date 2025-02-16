@@ -210,8 +210,8 @@ class KFoldEnvironment:
                 'network': segment.stats.network,
                 'receiver_code': segment.stats.channel,
                 'trace_start_time': segment.stats.starttime.timestamp,
-                'p_arrival_sample': -1,
-                's_arrival_sample': -1,
+                'p_arrival_sample': pd.NA,
+                's_arrival_sample': pd.NA,
                 'label': 'raw'
             })
 
