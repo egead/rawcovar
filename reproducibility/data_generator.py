@@ -197,18 +197,24 @@ class BatchGenerator:
         """
         x = []
         crop_offsets = []
-
+    # Upcoming: make preprocessing functions and divide this function to smaller pieces.
+    # It's way too big as is.
         for waveform in batch_waveforms:
             if waveform["label"] == 'eq':
                 x.append(self.data_pick[waveform['trace_name']])
+                # data= self._load_labeled_waveform(waveform)
 
             elif waveform["label"] == 'no':
                 x.append(self.data_noise[waveform['trace_name']])
+                # data= self._load_labeled_waveform(waveform)
             
-            #elif waveform["label"] == 'raw':
-                # to be added!
+            elif waveform["label"] == 'raw':
+                # data= self._load_raw_waveform(waveform)
+                print('To be uncommented :)')
+            else:
+                raise ValueError('Unknown label for the waveform: ', waveform['label'])
 
-
+        # x.append(self._preprocess(data,waveform['label']))
 
             crop_offset = waveform['crop_offset']
             crop_offsets.append(crop_offset)
