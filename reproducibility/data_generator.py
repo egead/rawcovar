@@ -161,28 +161,27 @@ class BatchGenerator:
         waveforms = []
 
         for __, row in df.iterrows():
-            waveform = {}
-            if row["label"] == "eq":
-                waveform["trace_name"] = row["trace_name"]
-                waveform["station_name"] = row["station_name"]
-                waveform["trace_start_time"] = self._utc_datetime_with_nan(
-                    row["trace_start_time"]
-                )
-                waveform["p_arrival_sample"] = row["p_arrival_sample"]
-                waveform["s_arrival_sample"] = row["s_arrival_sample"]
-                waveform["crop_offset"] = row["crop_offset"]
-                waveform["label"] = row["label"]
 
-            if row["label"] == "no":
-                waveform["trace_name"] = row["trace_name"]
-                waveform["station_name"] = row["station_name"]
-                waveform["trace_start_time"]: self._utc_datetime_with_nan(
-                    row["trace_start_time"]
-                )
-                waveform["p_arrival_sample"]: pd.NA
-                waveform["s_arrival_sample"]: pd.NA
-                waveform["crop_offset"] = row["crop_offset"]
-                waveform["label"] = row["label"]
+            # Common for all labels
+            waveform = {
+                'trace_name': row['trace_name'],
+                'station_name': row['station_name'],
+                'trace_start_time': self._utc_datetime_with_nan(row['trace_start_time']),
+                'crop_offset': row['crop_offset'],
+                'label': row['label']
+            }
+
+            if row['label'] == "eq":
+                waveform.update({
+                    'p_arrival_sample': row['p_arrival_sample'],
+                    's_arrival_sample': row['s_arrival_sample'],
+                })
+
+            else: # Covers for both 'raw' and 'no'
+                waveform.update({
+                    'p_arrival_sample': pd.NA,
+                    's_arrival_sample': pd.NA,
+                })
 
             waveforms.append(waveform)
 
@@ -200,13 +199,18 @@ class BatchGenerator:
         crop_offsets = []
 
         for waveform in batch_waveforms:
-            if waveform["label"] == "eq":
-                x.append(self.data_pick[waveform["trace_name"]])
+            if waveform["label"] == 'eq':
+                x.append(self.data_pick[waveform['trace_name']])
 
-            elif waveform["label"] == "no":
-                x.append(self.data_noise[waveform["trace_name"]])
+            elif waveform["label"] == 'no':
+                x.append(self.data_noise[waveform['trace_name']])
+            
+            #elif waveform["label"] == 'raw':
+                # to be added!
 
-            crop_offset = waveform["crop_offset"]
+
+
+            crop_offset = waveform['crop_offset']
             crop_offsets.append(crop_offset)
 
         # Create x tensor. It's shape is (BATCH_SIZE, N_TIMESTEPS, N_CHANNELS)
