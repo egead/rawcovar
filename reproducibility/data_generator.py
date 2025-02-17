@@ -200,24 +200,24 @@ class BatchGenerator:
         """
         x = []
         crop_offsets = []
-    # Upcoming: make preprocessing functions and divide this function to smaller pieces.
-    # It's way too big as is.
+
         for waveform in batch_waveforms:
             if waveform["label"] == 'eq':
-                x.append(self.data_pick[waveform['trace_name']])
-                # data= self._load_labeled_waveform(waveform)
+                #x.append(self.data_pick[waveform['trace_name']])
+                loaded_data_eq=self._load_labeled_waveform(waveform)
+                x.append(loaded_data_eq)
 
             elif waveform["label"] == 'no':
-                x.append(self.data_noise[waveform['trace_name']])
-                # data= self._load_labeled_waveform(waveform)
+                #x.append(self.data_noise[waveform['trace_name']])
+                loaded_data_no= self._load_labeled_waveform(waveform)
+                x.append(loaded_data_no)
             
             elif waveform["label"] == 'raw':
-                # data= self._load_raw_waveform(waveform)
-                print('To be uncommented :)')
+                #data= self._load_raw_waveform(waveform)
+                loaded_data_raw=self._load_raw_waveform(waveform)
+                x.append(loaded_data_raw)
             else:
                 raise ValueError('Unknown label for the waveform: ', waveform['label'])
-
-        # x.append(self._preprocess(data,waveform['label']))
 
             crop_offset = waveform['crop_offset']
             crop_offsets.append(crop_offset)
@@ -271,7 +271,7 @@ class BatchGenerator:
             if self.last_axis == 'channels':
                 return data_source[waveform['trace_name'][:]]
             elif self.last_axis == 'timesteps':
-                return data_source[waveform['trace_name'][:]].T 
+                return data_source[waveform['trace_name'][:]].T # Was [:] and [:].T necessary? 
             else: 
                 raise ValueError(f"Invalid last_axis: {self.last_axis}. Valid values for last_axis: [channels, timesteps]")
 
