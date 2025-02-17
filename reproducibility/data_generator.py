@@ -203,17 +203,14 @@ class BatchGenerator:
 
         for waveform in batch_waveforms:
             if waveform["label"] == 'eq':
-                #x.append(self.data_pick[waveform['trace_name']])
                 loaded_data_eq=self._load_labeled_waveform(waveform)
                 x_batch.append(loaded_data_eq)
 
             elif waveform["label"] == 'no':
-                #x.append(self.data_noise[waveform['trace_name']])
                 loaded_data_no= self._load_labeled_waveform(waveform)
                 x_batch.append(loaded_data_no)
             
             elif waveform["label"] == 'raw':
-                #data= self._load_raw_waveform(waveform)
                 loaded_data_raw=self._load_raw_waveform(waveform)
                 x_batch.append(loaded_data_raw)
             else:
