@@ -258,6 +258,40 @@ class BatchGenerator:
 
         return x
 
+    def _load_labeled_waveform(self,waveform):
+        '''
+        Loads waveform from labeled datasets such as STEAD or INSTANCE.
+        '''
+        try: 
+            data_source = self.data_pick if waveform['label']=='eq' else self.data_noise
+
+        except KeyError:
+            raise ValueError(f"Waveform {waveform['trace_name']} not found in {waveform['label']} data")
+
+
+
+    def _load_raw_waveform(self,waveform):
+        '''
+        Loads raw waveforms from HDF5
+        '''
+        try: 
+            return None # Will be updated to something like self.raw_hdf5_path ...
+
+        except KeyError:
+            raise ValueError(f"Waveform {waveform['trace_name']} not found in the raw data HDF5.")
+        
+
+
+    def _preprocess(data,label):
+        '''
+        A function that does the necessary preprocessing of the waveforms. 
+        
+        On the original RECOVAR paper (Efe O., Ozakin A. (2024)), 
+        is cropping the input to 30 seconds, applying a bandpass filter (1-20 Hz) and normalization. 
+        '''
+    
+        return None # To be updated
+
     def _get_batchy(self, batch_waveforms):
         """
         Args:
