@@ -271,7 +271,7 @@ class BatchGenerator:
             if self.last_axis == 'channels':
                 return data_source[waveform['trace_name'][:]]
             elif self.last_axis == 'timesteps':
-                return data_source[waveform['trace_name'][:]].T # Was [:] and [:].T necessary? 
+                return data_source[waveform['trace_name'][:]].T # "If last_axis was given as timesteps axis in the dataset, make channels last."
             else: 
                 raise ValueError(f"Invalid last_axis: {self.last_axis}. Valid values for last_axis: [channels, timesteps]")
 
@@ -282,10 +282,21 @@ class BatchGenerator:
 
     def _load_raw_waveform(self,waveform):
         '''
-        Loads raw waveforms from HDF5
+        Loads raw waveforms data from HDF5.
+
+        Args:
+            waveform
+        Returns: 
+
         '''
         try: 
-            return self.data_raw[f'data/{waveform["trace_name"]}/data'][:]
+            trace_group = self.data_raw[waveform['trace_name']]
+            data = trace_group['data'][:]
+
+            if self.last_axis == 'timesteps':
+                data = data.T
+            
+            return data
 
         except KeyError:
             raise ValueError(f"Waveform {waveform['trace_name']} not found in the raw data HDF5.")
