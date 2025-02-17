@@ -219,7 +219,7 @@ class BatchGenerator:
             crop_offset = waveform['crop_offset']
             crop_offsets.append(crop_offset)
 
-        # Create x tensor. It's shape is (BATCH_SIZE, N_TIMESTEPS, N_CHANNELS)
+        # Create x_batch tensor. It's shape is (BATCH_SIZE, N_TIMESTEPS, N_CHANNELS)
         x_batch = np.array(x_batch).astype(np.float32)
         crop_offsets = np.array(crop_offsets).astype(np.float32)
 
