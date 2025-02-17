@@ -265,6 +265,13 @@ class BatchGenerator:
         try: 
             data_source = self.data_pick if waveform['label']=='eq' else self.data_noise
 
+            if self.last_axis == 'channels':
+                return data_source[waveform['trace_name'][:]]
+            elif self.last_axis == 'timesteps':
+                return data_source[waveform['trace_name'][:]].T 
+            else: 
+                raise ValueError(f"Invalid last_axis: {self.last_axis}. Valid values for last_axis: [channels, timesteps]")
+
         except KeyError:
             raise ValueError(f"Waveform {waveform['trace_name']} not found in {waveform['label']} data")
 
