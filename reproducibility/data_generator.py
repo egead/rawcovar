@@ -198,24 +198,24 @@ class BatchGenerator:
         Returns:
             np.ndarray: Batch of x data.
         """
-        x = []
+        x_batch = []
         crop_offsets = []
 
         for waveform in batch_waveforms:
             if waveform["label"] == 'eq':
                 #x.append(self.data_pick[waveform['trace_name']])
                 loaded_data_eq=self._load_labeled_waveform(waveform)
-                x.append(loaded_data_eq)
+                x_batch.append(loaded_data_eq)
 
             elif waveform["label"] == 'no':
                 #x.append(self.data_noise[waveform['trace_name']])
                 loaded_data_no= self._load_labeled_waveform(waveform)
-                x.append(loaded_data_no)
+                x_batch.append(loaded_data_no)
             
             elif waveform["label"] == 'raw':
                 #data= self._load_raw_waveform(waveform)
                 loaded_data_raw=self._load_raw_waveform(waveform)
-                x.append(loaded_data_raw)
+                x_batch.append(loaded_data_raw)
             else:
                 raise ValueError('Unknown label for the waveform: ', waveform['label'])
 
@@ -223,43 +223,11 @@ class BatchGenerator:
             crop_offsets.append(crop_offset)
 
         # Create x tensor. It's shape is (BATCH_SIZE, N_TIMESTEPS, N_CHANNELS)
-        x = np.array(x).astype(np.float32)
+        x_batch = np.array(x_batch).astype(np.float32)
         crop_offsets = np.array(crop_offsets).astype(np.float32)
 
-        # crop_offsets shape is currently (BATCH_SIZE,).
-        # Convert it to (BATCH_SIZE, 1, 1). This is required for multiplying
-        # it with batch data in order to align them properly.
-        crop_offsets = np.expand_dims(np.expand_dims(crop_offsets, axis=1), axis=2)
+        return self._preprocess(x_batch,crop_offsets)
 
-        # f shape is (N_TIMESTEPS). Make it (1, N_TIMESTEPS, 1) for multiplication.
-        f = np.expand_dims(np.expand_dims(self.f, axis=0), axis=2)
-
-        # If last_axis was given as timesteps axis in the dataset, make channels last.
-        if self.last_axis == "timesteps":
-            x = np.transpose(x, axes=[0, 2, 1])
-
-        # Convert to Fourier domain.
-        xw = np.fft.fft(x, axis=1)
-
-        # Roll waveforms towards the left by crop_offsets.
-        xw = xw * np.exp(1j * 2 * np.pi * f * crop_offsets / self.sampling_freq)
-
-        # Apply bandpass filtering at Fourier domain.
-        mask = (np.abs(self.f) < self.freqmin) | (np.abs(self.f) > self.freqmax)
-        xw[:, mask, :] = 0
-
-        # Convert to time domain and retrieve numeric type.
-        x = np.fft.ifft(xw, axis=1)
-        x = np.real(x).astype(np.float32)
-
-        # Slice the x in timesteps direction.
-        x = x[:, 0 : self._get_ts(self.model_time_window), :]
-
-        # Demean timesteps axis. And then normalize each channel.
-        x = x - np.mean(x, axis=1, keepdims=True)
-        x = self._normalize(x, axis=1)
-
-        return x
 
     def _load_labeled_waveform(self,waveform):
         '''
@@ -303,15 +271,47 @@ class BatchGenerator:
         
 
 
-    def _preprocess(data,label):
+    def _preprocess(self,x_batch,crop_offsets):
         '''
-        A function that does the necessary preprocessing of the waveforms. 
+        Applies preprocessing pipeline to a batch of waveforms. 
         
         On the original RECOVAR paper (Efe O., Ozakin A. (2024)), 
-        is cropping the input to 30 seconds, applying a bandpass filter (1-20 Hz) and normalization. 
+        is cropping the input to 30 seconds, applying a bandpass filter (1-20 Hz) and normalization.
+
+        Args: 
+            x_batch (np.ndarray): Batch of raw waveforms
+            crop_offsets (np.ndarray)
+
+        Returns: 
+            np.ndarray: Preprocessed batch ready to be input. 
+
         '''
-    
-        return None # To be updated
+
+        # If last_axis was given as timesteps axis in the dataset, make channels last.
+        if self.last_axis == "timesteps":
+            x_batch = np.transpose(x_batch, axes=[0, 2, 1]) #(batch, timesteps, channels)
+        
+        # Convert to Fourier domain.
+        xw = np.fft.fft(x_batch, axis=1)
+
+        # Roll waveforms towards the left by crop_offsets.
+        xw = xw * np.exp(1j * 2 * np.pi * f * crop_offsets / self.sampling_freq)
+
+        # Apply bandpass filtering at Fourier domain.
+        mask = (np.abs(self.f) < self.freqmin) | (np.abs(self.f) > self.freqmax)
+        xw[:, mask, :] = 0
+
+        # Convert to time domain and retrieve numeric type.
+        x_batch = np.fft.ifft(xw, axis=1)
+        x_batch = np.real(x_batch).astype(np.float32)
+
+        # Slice the x in timesteps direction.
+        x_batch = x_batch[:, 0 : self._get_ts(self.model_time_window), :]
+
+        # Demean timesteps axis. And then normalize each channel.
+        x_batch -= np.mean(x_batch, axis=1, keepdims=True)
+        return self._normalize(x_batch, axis=1)
+
 
     def _get_batchy(self, batch_waveforms):
         """
