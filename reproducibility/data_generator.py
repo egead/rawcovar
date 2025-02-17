@@ -116,6 +116,9 @@ class BatchGenerator:
         f_no = h5py.File(self.no_hdf5_path, "r")
         self.data_noise = f_no.get("data/")
 
+        f_raw = h5py.File(self.raw_hdf5_path,'r')
+        self.data_raw = f_raw.get("data/")
+
         self.x_batch = None
         self.y_batch = None
 
@@ -282,7 +285,7 @@ class BatchGenerator:
         Loads raw waveforms from HDF5
         '''
         try: 
-            return None # Will be updated to something like self.raw_hdf5_path ...
+            return self.data_raw[f'data/{waveform["trace_name"]}/data'][:]
 
         except KeyError:
             raise ValueError(f"Waveform {waveform['trace_name']} not found in the raw data HDF5.")
