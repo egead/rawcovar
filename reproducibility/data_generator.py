@@ -318,11 +318,17 @@ class BatchGenerator:
         Returns:
             np.ndarray: Batch of y data.
         """
-        y = np.array(
-            [waveform["label"] == "eq" for waveform in batch_waveforms],
-            dtype=np.int32,
-        )
-        return y
+        y = []
+
+        for waveform in batch_waveforms:
+            if waveform['label']=='eq':
+                y.append(1)
+            elif waveform['label']=='no':
+                y.append(0)
+            else:
+                y.append(-1)
+        
+        return np.array(y, dtype=np.int32)
 
     def _get_ts(self, t):
         """
