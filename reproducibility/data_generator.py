@@ -510,20 +510,35 @@ class DataGenerator(Sequence):
         Then each chunk is split into batches and batches are stored in the hdf5 file.
         """
         with h5py.File(self.processed_hdf5_path, "w") as processed_hdf5:
+            
             for chunk_idx in range(len(self.chunk_metadata_list)):
-                bg = BatchGenerator(
-                    batch_size=self.batch_size,
-                    batch_metadata=self.chunk_metadata_list[chunk_idx],
-                    eq_hdf5_path=self.bg_kwargs["eq_hdf5_path"],
-                    no_hdf5_path=self.bg_kwargs["no_hdf5_path"],
-                    meta_parser=self.bg_kwargs["meta_parser"],
-                    dataset_time_window=self.dataset_time_window,
-                    model_time_window=self.model_time_window,
-                    sampling_freq=self.sampling_freq,
-                    freqmin=self.bg_kwargs["freqmin"],
-                    freqmax=self.bg_kwargs["freqmax"],
-                    last_axis=self.bg_kwargs["last_axis"],
-                )
+
+                if self.dataset_type == 'raw':
+                    bg = BatchGenerator(
+                        batch_size=self.batch_size,
+                        batch_metadata=self.chunk_metadata_list[chunk_idx],
+                        raw_hdf5_path=self.bg_kwargs["raw_hdf5_path"],
+                        dataset_time_window=self.dataset_time_window,
+                        model_time_window=self.model_time_window,
+                        sampling_freq=self.sampling_freq,
+                        freqmin=self.bg_kwargs["freqmin"],
+                        freqmax=self.bg_kwargs["freqmax"],
+                        last_axis=self.bg_kwargs["last_axis"],
+                    )
+                else:
+                    bg = BatchGenerator(
+                        batch_size=self.batch_size,
+                        batch_metadata=self.chunk_metadata_list[chunk_idx],
+                        eq_hdf5_path=self.bg_kwargs["eq_hdf5_path"],
+                        no_hdf5_path=self.bg_kwargs["no_hdf5_path"],
+                        meta_parser=self.bg_kwargs["meta_parser"],
+                        dataset_time_window=self.dataset_time_window,
+                        model_time_window=self.model_time_window,
+                        sampling_freq=self.sampling_freq,
+                        freqmin=self.bg_kwargs["freqmin"],
+                        freqmax=self.bg_kwargs["freqmax"],
+                        last_axis=self.bg_kwargs["last_axis"],
+                    )
 
                 n_chunk_batches = bg.num_batches()
 

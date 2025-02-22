@@ -608,6 +608,7 @@ class KFoldEnvironment:
             batch_size=self.batch_size,
             eq_hdf5_path=self.eq_hdf5_path,
             no_hdf5_path=self.no_hdf5_path,
+            raw_hdf5_path=self.raw_hdf5_path,
             dataset_time_window=self.dataset_time_window,
             model_time_window=self.model_time_window,
             phase_ensured_crop_ratio=self.phase_ensured_crop_ratio,
