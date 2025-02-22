@@ -391,7 +391,6 @@ class DataGenerator(Sequence):
         eq_hdf5_path (str): Path of the hdf5 file that contains the waveforms of the eq events.
         no_hdf5_path (str): Path of the hdf5 file that contains the waveforms of the no events.
         raw_hdf5_path (str): Path of the hdf5 file that contains the raw waveforms.
-        meta_parser (MetaParser): MetaParser instance that is used to parse the metadata.
         dataset_time_window (float): The time window of the dataset.
         model_time_window (float): The time window of the model.
         phase_ensured_crop_ratio (float): The ratio of the eq waveforms that are ensured to include
@@ -510,7 +509,7 @@ class DataGenerator(Sequence):
         Then each chunk is split into batches and batches are stored in the hdf5 file.
         """
         with h5py.File(self.processed_hdf5_path, "w") as processed_hdf5:
-            
+
             for chunk_idx in range(len(self.chunk_metadata_list)):
 
                 if self.dataset_type == 'raw':
@@ -531,7 +530,6 @@ class DataGenerator(Sequence):
                         batch_metadata=self.chunk_metadata_list[chunk_idx],
                         eq_hdf5_path=self.bg_kwargs["eq_hdf5_path"],
                         no_hdf5_path=self.bg_kwargs["no_hdf5_path"],
-                        meta_parser=self.bg_kwargs["meta_parser"],
                         dataset_time_window=self.dataset_time_window,
                         model_time_window=self.model_time_window,
                         sampling_freq=self.sampling_freq,
