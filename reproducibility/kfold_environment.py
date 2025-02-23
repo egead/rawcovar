@@ -508,13 +508,14 @@ class KFoldEnvironment:
         grp = parent_group.create_group(seg_id)
         grp.create_dataset('data', data=segment.data.astype('float32'))
         
-        # Match STEAD's naming convention
+        # This needs to be updated to match STEAD's convention
         grp.attrs.update({
             'trace_name': seg_id,
             'station_name': segment.stats.station,
             'network': segment.stats.network,
-            'receiver_code': segment.stats.channel,
-            'trace_start_time': segment.stats.starttime.timestamp,
+            'channel': segment.stats.channel,
+            'starttime': segment.stats.starttime.timestamp,
+            'endtime': (segment.stats.starttime + segment.stats.npts/segment.stats.sampling_rate).timestamp,
             'p_arrival_sample': pd.NA,
             's_arrival_sample': pd.NA,
             'label': 'raw'
@@ -530,19 +531,17 @@ class KFoldEnvironment:
         with h5py.File(raw_hdf5_path,'r') as hdf: 
             for seg_id in hdf['data']:
                 seg_grp = hdf[f'data/{seg_id}']
-                seg_metadata = seg_grp['metadata'][()]
-
                 metadata.append({
-                    'trace_name': seg_id,
-                    'station_name': seg_metadata['station'].decode(),
-                    'network': seg_metadata['network'].decode(),
-                    'channel': seg_metadata['channel'].decode(),
-                    'starttime': seg_metadata['starttime'],
-                    'endtime': seg_metadata['endtime'],
-                    'sampling_rate': seg_metadata['sampling_rate'],
-                    'segment_length': seg_metadata['segment_length'],
-                    'label': 'raw'
-                })
+                'trace_name': seg_id,
+                'station_name': seg_grp.attrs.get('station_name', 'UNKNOWN'),
+                'network': seg_grp.attrs.get('network', 'UNKNOWN'),
+                'channel': seg_grp.attrs.get('channel', 'UNKNOWN'),
+                'starttime': seg_grp.attrs['start_time'],
+                'endtime': seg_grp.attrs['end_time'],
+                'sampling_rate': seg_grp.attrs['sampling_rate'],
+                'segment_length': seg_grp.attrs['segment_length'],
+                'label': 'raw'
+            })
         
         return pd.DataFrame(metadata)
 
