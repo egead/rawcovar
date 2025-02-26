@@ -1,10 +1,10 @@
 # RawCovar
 
-[![arXiv](https://img.shields.io/badge/arXiv-2407.18402v1-b31b1b.svg)](https://arxiv.org/abs/2407.18402)
+ReCovar Paper: [![arXiv](https://img.shields.io/badge/arXiv-2407.18402v1-b31b1b.svg)](https://arxiv.org/abs/2407.18402)
 
 ## Overview
 
-**RawCovar** is an unsupervised machine learning framework for detecting seismic signals from continuous waveform data. By leveraging representation learning through deep auto-encoders, this method aims to effectively distinguish between seismic signals and noise without supervision, offering competitive performances to many state-of-the-art supervised methods in cross-dataset scenarios.
+**RawCovar** is an unsupervised machine learning framework for detecting seismic signals from continuous waveform data. By leveraging representation learning through deep auto-encoders, this method aims to effectively distinguish between seismic signals and noise without supervision, offering competitive performances to many state-of-the-art supervised methods in cross-dataset scenarios. RawCovar is built upon ReCovar to accomadate for unlabeled (raw) data in addition to labeled datasets used in the original paper.
 
 ## Features
 - **Unsupervised Learning**: Utilizes deep auto-encoders to learn compressed representations of seismic waveforms, requiring minimal labeled data.
