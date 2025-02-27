@@ -475,22 +475,28 @@ class KFoldEnvironment:
         '''
         if not exists(output_path):
             self._convert_mseed_to_hdf5(
-                mseed_files=RAW_WAVEFORMS_MSEED_PATH,
                 output_file=output_path,
                 segment_length=RAW_TIME_WINDOW
             )
-    def _convert_mseed_to_hdf5(self, mseed_files, output_file, segment_length):
+    def _convert_mseed_to_hdf5(self, output_file, segment_length):
         '''
         Converts mseed files to HDF5
         '''
         with h5py.File(output_file,'w') as hdf:
             data_grp = hdf.create_group('data')
-
-            # This loop may need to be modified to make it more consistent with different directory structures
+            mseed_files=_=self._gather_mseed_files(directory=RAW_WAVEFORMS_MSEED_PATH)
             for mseed in mseed_files: 
                 st = obspy.read(mseed)
                 for tr in st:
                     self._process_trace(tr, data_grp, segment_length)
+    
+    def _gather_mseed_files(directory):
+        mseed_files = []
+        for root, _, files in os.walk(directory):
+            for file in files:
+                if file.endswith('.mseed'):
+                    mseed_files.append(os.path.join(root, file))
+        return mseed_files
 
     def _process_trace(self, tr, data_grp, segment_length):
         start_time = tr.stats.starttime
