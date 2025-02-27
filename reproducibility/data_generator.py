@@ -291,7 +291,7 @@ class BatchGenerator:
         xw = np.fft.fft(x_batch, axis=1)
 
         # Roll waveforms towards the left by crop_offsets.
-        xw = xw * np.exp(1j * 2 * np.pi * f * crop_offsets / self.sampling_freq)
+        xw = xw * np.exp(1j * 2 * np.pi * self.f * crop_offsets / self.sampling_freq)
 
         # Apply bandpass filtering at Fourier domain.
         mask = (np.abs(self.f) < self.freqmin) | (np.abs(self.f) > self.freqmax)
