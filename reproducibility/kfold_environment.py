@@ -21,7 +21,7 @@ from directory import (
     INSTANCE_EQ_METADATA_CSV_PATH,
     INSTANCE_NOISE_METADATA_CSV_PATH,
     RAW_WAVEFORMS_HDF5_PATH,
-    RAW_WAVEFORMS_MSEED_PATH,
+    RAW_WAVEFORMS_MSEED_DIR,
     RAW_WAVEFORMS_METADATA_CSV_DIR, 
     PREPROCESSED_DATASET_DIRECTORY,
 )
@@ -111,7 +111,7 @@ class KFoldEnvironment:
         instance_eq_metadata_csv=INSTANCE_EQ_METADATA_CSV_PATH,
         instance_no_metadata_csv=INSTANCE_NOISE_METADATA_CSV_PATH,
         raw_waveforms_hdf5=RAW_WAVEFORMS_HDF5_PATH,
-        raw_waveforms_mseed=RAW_WAVEFORMS_MSEED_PATH,
+        raw_waveforms_mseed=RAW_WAVEFORMS_MSEED_DIR,
         model_time_window=30.0,
         phase_ensured_crop_ratio=PHASE_PICK_ENSURED_CROP_RATIO,
         phase_ensuring_margin=PHASE_ENSURING_MARGIN,
