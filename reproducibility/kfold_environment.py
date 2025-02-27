@@ -473,13 +473,21 @@ class KFoldEnvironment:
         
     def _create_raw_hdf5(self, output_path):
         '''
-        Creates HDF5 file for raw data if it doesn't already exist.
+        Checks for and creates an HDF5 file for raw data if it doesn't already exist.
         '''
-        if not exists(output_path): #Should be changed to see if the file exists, instead of path. Because bath can be an empty directory.
+        if not os.path.isdir(output_path):
+            os.makedirs(output_path, exist_ok=True)
+        
+        # This naming convention is temporary, and will be updated with a more robust way.
+        output_file = os.path.join(output_path, "raw_data.hdf5")
+        
+        # Check if the target file exists; if not, run the conversion.
+        if not os.path.isfile(target_file):
             self._convert_mseed_to_hdf5(
-                output_file=output_path,
+                output_file=target_file,
                 segment_length=RAW_TIME_WINDOW
             )
+
     def _convert_mseed_to_hdf5(self, output_file, segment_length):
         '''
         Converts mseed files to HDF5
