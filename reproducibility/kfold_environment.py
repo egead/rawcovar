@@ -157,7 +157,9 @@ class KFoldEnvironment:
             self.last_axis = "timesteps"
             self.dataset_time_window = self.instance_time_window
         
-        if dataset == "raw": 
+        if dataset == "raw":
+            if not exists(raw_waveforms_hdf5):
+                self._create_raw_hdf5(raw_waveforms_hdf5) 
             metadata = self._parse_raw_metadata(raw_waveforms_mseed)
             self.raw_waveforms_hdf5 = raw_waveforms_hdf5
             self.last_axis = "timesteps"
@@ -473,7 +475,7 @@ class KFoldEnvironment:
         '''
         Creates HDF5 file for raw data if it doesn't already exist.
         '''
-        if not exists(output_path):
+        if not exists(output_path): #Should be changed to see if the file exists, instead of path. Because bath can be an empty directory.
             self._convert_mseed_to_hdf5(
                 output_file=output_path,
                 segment_length=RAW_TIME_WINDOW
@@ -515,7 +517,7 @@ class KFoldEnvironment:
         grp = parent_group.create_group(seg_id)
         grp.create_dataset('data', data=segment.data.astype('float32'))
         
-        # This needs to be updated to match STEAD's convention
+        # This needs to be revised to match STEAD's convention
         grp.attrs.update({
             'trace_name': seg_id,
             'station_name': segment.stats.station,
