@@ -481,10 +481,10 @@ class KFoldEnvironment:
         # This naming convention is temporary, and will be updated with a more robust way.
         output_file = os.path.join(output_path, "raw_data.hdf5")
         
-        # Check if the target file exists; if not, run the conversion.
-        if not os.path.isfile(target_file):
+        # Might need to revisit this part of the code!
+        if not os.path.isfile(output_file):
             self._convert_mseed_to_hdf5(
-                output_file=target_file,
+                output_file=output_file,
                 segment_length=RAW_TIME_WINDOW
             )
 
