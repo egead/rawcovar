@@ -39,6 +39,7 @@ import numpy as np
 from sklearn.model_selection import KFold
 import obspy
 import h5py
+import os
 
 class KFoldEnvironment:
     """
