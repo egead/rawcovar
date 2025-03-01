@@ -159,9 +159,8 @@ class KFoldEnvironment:
             self.dataset_time_window = self.instance_time_window
         
         if dataset == "raw":
-            self._create_raw_hdf5(raw_waveforms_mseed) 
+            self.raw_waveforms_hdf5 = self._create_raw_hdf5(raw_waveforms_hdf5)
             metadata = self._parse_raw_metadata(raw_waveforms_hdf5)
-            self.raw_waveforms_hdf5 = raw_waveforms_hdf5
             self.last_axis = "timesteps"
             self.dataset_time_window = self.raw_time_window
         
@@ -471,15 +470,15 @@ class KFoldEnvironment:
         standardized_metadata = pd.concat([eq_metadata, no_metadata])
         return standardized_metadata
         
-    def _create_raw_hdf5(self, output_path):
+    def _create_raw_hdf5(self, output_dir):
         '''
         Checks for and creates an HDF5 file for raw data if it doesn't already exist.
         '''
-        if not os.path.isdir(output_path):
-            os.makedirs(output_path, exist_ok=True)
+        if not os.path.isdir(output_dir):
+            os.makedirs(output_dir, exist_ok=True)
         
         # This naming convention is temporary, and will be updated with a more robust way.
-        output_file = os.path.join(output_path, "raw_data.hdf5")
+        output_file = os.path.join(output_dir, "raw_data.hdf5")
         
         # Might need to revisit this part of the code!
         if not os.path.isfile(output_file):
@@ -487,6 +486,7 @@ class KFoldEnvironment:
                 output_file=output_file,
                 segment_length=RAW_TIME_WINDOW
             )
+        return output_file
 
     def _convert_mseed_to_hdf5(self, output_file, segment_length):
         '''
