@@ -130,6 +130,7 @@ class KFoldEnvironment:
         self.phase_ensuring_margin = phase_ensuring_margin
         self.stead_time_window = stead_time_window
         self.instance_time_window = instance_time_window
+        self.raw_time_window=raw_time_window
         self.subsampling_factor = subsampling_factor
         self.sampling_freq = sampling_freq
         self.train_val_ratio = train_val_ratio
