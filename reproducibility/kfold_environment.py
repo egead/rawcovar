@@ -160,6 +160,7 @@ class KFoldEnvironment:
         
         if dataset == "raw":
             self.raw_waveforms_hdf5 = self._create_raw_hdf5(raw_waveforms_hdf5)
+            print(raw_waveforms_hdf5)
             metadata = self._parse_raw_metadata(raw_waveforms_hdf5)
             self.last_axis = "timesteps"
             self.dataset_time_window = self.raw_time_window
@@ -481,11 +482,12 @@ class KFoldEnvironment:
         output_file = os.path.join(output_dir, "raw_data.hdf5")
         
         # Might need to revisit this part of the code!
-        if not os.path.isfile(output_file):
-            self._convert_mseed_to_hdf5(
-                output_file=output_file,
-                segment_length=RAW_TIME_WINDOW
-            )
+        #if not os.path.isfile(output_file):
+        self._convert_mseed_to_hdf5(
+            output_file=output_file,
+            segment_length=RAW_TIME_WINDOW
+        )
+        print(output_file)
         return output_file
 
     def _convert_mseed_to_hdf5(self, output_file, segment_length):
@@ -500,7 +502,7 @@ class KFoldEnvironment:
                 for tr in st:
                     self._process_trace(tr, data_grp, segment_length)
     
-    def _gather_mseed_files(directory):
+    def _gather_mseed_files(self, directory):
         mseed_files = []
         for root, _, files in os.walk(directory):
             for file in files:
