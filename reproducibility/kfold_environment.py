@@ -564,6 +564,9 @@ class KFoldEnvironment:
                 'label': 'raw'
             })
         
+        metadata["source_id"] = metadata["trace_name"]
+
+        
         return pd.DataFrame(metadata)
 
 
