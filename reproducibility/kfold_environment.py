@@ -554,6 +554,7 @@ class KFoldEnvironment:
                 seg_grp = hdf[f'data/{seg_id}']
                 metadata.append({
                 'trace_name': seg_id,
+                'source_id':seg_id,
                 'station_name': seg_grp.attrs.get('station_name', 'UNKNOWN'),
                 'network': seg_grp.attrs.get('network', 'UNKNOWN'),
                 'channel': seg_grp.attrs.get('channel', 'UNKNOWN'),
@@ -563,9 +564,6 @@ class KFoldEnvironment:
                 'segment_length': seg_grp.attrs['segment_length'],
                 'label': 'raw'
             })
-        
-        metadata["source_id"] = metadata["trace_name"]
-
         
         return pd.DataFrame(metadata)
 
