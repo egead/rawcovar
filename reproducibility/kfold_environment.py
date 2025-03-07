@@ -161,7 +161,6 @@ class KFoldEnvironment:
         
         if dataset == "raw":
             self.raw_waveforms_hdf5 = self._create_raw_hdf5(RAW_WAVEFORMS_HDF5_PATH)
-            print(raw_waveforms_hdf5)
             # This works for now, but I need to return to this part of the code later.
             metadata = self._parse_raw_metadata(self._create_raw_hdf5(RAW_WAVEFORMS_HDF5_PATH))
             self.last_axis = "timesteps"
@@ -489,7 +488,6 @@ class KFoldEnvironment:
             output_file=output_file,
             segment_length=RAW_TIME_WINDOW
         )
-        print(output_file)
         return output_file
 
     def _convert_mseed_to_hdf5(self, output_file, segment_length):
