@@ -486,7 +486,7 @@ class KFoldEnvironment:
         #if not os.path.isfile(output_file):
         self._convert_mseed_to_hdf5(
             output_file=output_file,
-            segment_length=RAW_TIME_WINDOW
+            segment_length=self.raw_time_window
         )
         return output_file
 
