@@ -565,6 +565,9 @@ class KFoldEnvironment:
                 'segment_length': seg_grp.attrs['segment_length'],
                 'label': 'raw'
             })
+
+        if not metadata:
+            raise ValueError(f"No metadata found in path: {raw_hdf5_path}")
         
         return pd.DataFrame(metadata)
 
