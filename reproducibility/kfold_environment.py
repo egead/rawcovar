@@ -519,7 +519,7 @@ class KFoldEnvironment:
 
             # This approach may be updated later
             if segment.stats.npts == int(segment_length * tr.stats.sampling_rate):
-                seg_id = f"{tr.id}_{start.timestamp:.0f}"
+                seg_id = f"{tr.id}_{start_time.timestamp:.0f}"
                 self._store_segment(segment, data_grp, seg_id)
                 
             start_time += segment_length
