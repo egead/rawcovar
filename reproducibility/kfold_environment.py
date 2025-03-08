@@ -531,12 +531,13 @@ class KFoldEnvironment:
         # This needs to be revised to match STEAD's convention
         grp.attrs.update({
             'trace_name': seg_id,
-            'source_id':seg_id,
+            'source_id': seg_id,
             'station_name': segment.stats.station,
             'network': segment.stats.network,
             'channel': segment.stats.channel,
             'starttime': segment.stats.starttime.timestamp,
             'endtime': (segment.stats.starttime + segment.stats.npts/segment.stats.sampling_rate).timestamp,
+            'sampling_rate': segment.stats.sampling_rate,
             'p_arrival_sample': pd.NA,
             's_arrival_sample': pd.NA,
             'label': 'raw'
