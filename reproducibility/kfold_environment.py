@@ -160,9 +160,9 @@ class KFoldEnvironment:
             self.dataset_time_window = self.instance_time_window
         
         if dataset == "raw":
-            self.raw_waveforms_hdf5 = self._create_raw_hdf5(RAW_WAVEFORMS_HDF5_PATH)
-            # This works for now, but I need to return to this part of the code later.
-            metadata = self._parse_raw_metadata(self._create_raw_hdf5(RAW_WAVEFORMS_HDF5_PATH))
+            self.dataset_type = "raw"
+            self.raw_hdf5_path = self._create_raw_hdf5(raw_waveforms_hdf5)
+            metadata = self._parse_raw_metadata(self.raw_hdf5_path)
             self.last_axis = "timesteps"
             self.dataset_time_window = self.raw_time_window
         
