@@ -325,8 +325,10 @@ class BatchGenerator:
                 y.append(1)
             elif waveform['label']=='no':
                 y.append(0)
-            else:
+            elif waveform['label'] == 'raw':
                 y.append(-1)
+            else: 
+                raise ValueError(f"Unrecognized label for dataset: {waveform['label']}")
         
         return np.array(y, dtype=np.int32)
 
