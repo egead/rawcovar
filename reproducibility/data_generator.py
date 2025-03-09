@@ -511,7 +511,7 @@ class DataGenerator(Sequence):
 
             for chunk_idx in range(len(self.chunk_metadata_list)):
                 dataset_type = "raw" if "raw" in self.chunk_metadata_list[chunk_idx]['label'].values[0] else "labeled"
-                if self.dataset_type == 'raw':
+                if dataset_type == 'raw':
                     bg = BatchGenerator(
                         batch_size=self.batch_size,
                         batch_metadata=self.chunk_metadata_list[chunk_idx],
