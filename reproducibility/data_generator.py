@@ -86,7 +86,7 @@ class BatchGenerator:
         freqmin=FREQMIN,
         freqmax=FREQMAX,
         last_axis="channels",
-        dataset_type="stead" 
+        dataset_type="labeled" 
     ):
         self.batch_size = batch_size
         self.dataset_time_window = dataset_time_window
