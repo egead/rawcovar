@@ -167,6 +167,7 @@ class BatchGenerator:
             # Common for all labels
             waveform = {
                 'trace_name': row['trace_name'],
+                'source_id': row['source_id'],
                 'station_name': row['station_name'],
                 'trace_start_time': self._utc_datetime_with_nan(row['trace_start_time']),
                 'crop_offset': row['crop_offset'],
