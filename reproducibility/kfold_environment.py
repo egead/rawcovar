@@ -517,8 +517,12 @@ class KFoldEnvironment:
             end_time = start_time + segment_length
             segment = tr.slice(start_time,end_time)
 
-            # This approach may be updated later
-            if segment.stats.npts == int(segment_length * tr.stats.sampling_rate):
+            # More forgiving approach
+            expected_points = int(segment_length * tr.stats.sampling_rate)
+            actual_points = segment.stats.npts
+            if actual_points >= 0.98 * expected_points and actual_points <= 1.02 * expected_points:
+            # Unforgiving approach (causes problems)
+            #if segment.stats.npts == int(segment_length * tr.stats.sampling_rate):
                 seg_id = f"{tr.id}_{start_time.timestamp:.0f}"
                 self._store_segment(segment, data_grp, seg_id)
                 
@@ -538,8 +542,8 @@ class KFoldEnvironment:
             'starttime': segment.stats.starttime.timestamp,
             'endtime': (segment.stats.starttime + segment.stats.npts/segment.stats.sampling_rate).timestamp,
             'sampling_rate': segment.stats.sampling_rate,
-            'p_arrival_sample': pd.NA,
-            's_arrival_sample': pd.NA,
+            'p_arrival_sample': -1,
+            's_arrival_sample': -1,
             'label': 'raw'
         })
 
