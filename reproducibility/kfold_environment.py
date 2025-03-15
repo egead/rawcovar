@@ -531,8 +531,8 @@ class KFoldEnvironment:
     def _store_segment(self, segment, parent_group, seg_id):
         grp = parent_group.create_group(seg_id)
         grp.create_dataset('data', data=segment.data.astype('float32'))
-        
-        # This needs to be revised to match STEAD's convention
+
+        segment_length= segment.stats.npts / segment.stats.sampling_rate
         grp.attrs.update({
             'trace_name': seg_id,
             'source_id': seg_id,
@@ -544,6 +544,7 @@ class KFoldEnvironment:
             'sampling_rate': segment.stats.sampling_rate,
             'p_arrival_sample': -1,
             's_arrival_sample': -1,
+            'segment_length': segment_length,
             'label': 'raw'
         })
 
@@ -563,11 +564,13 @@ class KFoldEnvironment:
                 'station_name': seg_grp.attrs.get('station_name', 'UNKNOWN'),
                 'network': seg_grp.attrs.get('network', 'UNKNOWN'),
                 'channel': seg_grp.attrs.get('channel', 'UNKNOWN'),
-                'starttime': seg_grp.attrs['starttime'],
-                'endtime': seg_grp.attrs['endtime'],
-                'sampling_rate': seg_grp.attrs['sampling_rate'],
-                'segment_length': seg_grp.attrs['segment_length'],
-                'label': 'raw'
+                'starttime': seg_grp.attrs.get('starttime', 0.0),
+                'endtime': seg_grp.attrs.get('endtime', 0.0),
+                'sampling_rate': seg_grp.attrs.get('sampling_rate', 0.0),
+                'segment_length': seg_grp.attrs.get('segment_length', 0.0),
+                'p_arrival_sample': seg_grp.attrs.get('p_arrival_sample', -1),
+                's_arrival_sample': seg_grp.attrs.get('s_arrival_sample', -1),
+                'label': seg_grp.attrs.get('label','raw')
             })
 
         if not metadata:
