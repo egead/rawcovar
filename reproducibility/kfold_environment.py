@@ -146,6 +146,7 @@ class KFoldEnvironment:
 
             self.eq_hdf5_path = stead_waveforms_hdf5
             self.no_hdf5_path = stead_waveforms_hdf5
+            self.raw_hdf5_path = None
             self.last_axis = "channels"
             self.dataset_time_window = self.stead_time_window
 
@@ -156,11 +157,14 @@ class KFoldEnvironment:
 
             self.eq_hdf5_path = instance_eq_waveforms_hdf5
             self.no_hdf5_path = instance_no_waveforms_hdf5
+            self.raw_hdf5_path = None
             self.last_axis = "timesteps"
             self.dataset_time_window = self.instance_time_window
         
         if dataset == "raw":
             self.dataset_type = "raw"
+            self.eq_hdf5_path = None
+            self.no_hdf5_path = None
             self.raw_hdf5_path = self._create_raw_hdf5(raw_waveforms_mseed)
             metadata = self._parse_raw_metadata(self.raw_hdf5_path)
             self.last_axis = "timesteps"
