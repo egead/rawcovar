@@ -496,7 +496,7 @@ class KFoldEnvironment:
         '''
         with h5py.File(output_file,'w') as hdf:
             data_grp = hdf.create_group('data')
-            mseed_files=_=self._gather_mseed_files(directory=RAW_WAVEFORMS_MSEED_DIR)
+            mseed_files=self._gather_mseed_files(directory=RAW_WAVEFORMS_MSEED_DIR)
             print(f"Found {len(mseed_files)} mseed files to process.")
             for mseed in mseed_files: 
                 st = obspy.read(mseed)

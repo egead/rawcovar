@@ -16,7 +16,7 @@
         "INSTANCE_EQ_METADATA_CSV_PATH": "/mnt/second_drive/instance_dset/metadata_Instance_events.csv",
         "RAW_WAVEFORMS_METADATA_CSV_DIR":"/home/ege/rawcovar/data/silivri/metadata",
         "RAW_WAVEFORMS_HDF5_PATH": "/home/ege/rawcovar/data/silivri/hdf5",
-        "RAW_WAVEFORMS_MSEED_DIR":"/home/boxx/Public/earthquake_model_evaluations/data/SilivriPaper_2019-09-01__2019-11-30/prepared_waveforms/day_by_day/ADVT/"
+        "RAW_WAVEFORMS_MSEED_DIR":"/home/ege/rawcovar/ADVT"
     },
     "PREPROCESSED_DATASET_DIRECTORY": "./data/data_preprocessed/",
     "TRAINED_MODELS_DIR": "./models/",
