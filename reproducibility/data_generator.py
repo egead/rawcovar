@@ -217,16 +217,22 @@ class BatchGenerator:
 
         for waveform in batch_waveforms:
             if waveform["label"] == 'eq':
-                loaded_data_eq=self._load_labeled_waveform(waveform)
-                x_batch.append(loaded_data_eq)
+                if self.data_pick is None:
+                    raise ValueError("Cannot process earthquake data: data_pick is None")
+                loaded_data = self._load_labeled_waveform(waveform)
+                x_batch.append(loaded_data)
 
             elif waveform["label"] == 'no':
-                loaded_data_no= self._load_labeled_waveform(waveform)
-                x_batch.append(loaded_data_no)
+                if self.data_noise is None:
+                    raise ValueError("Cannot process noise data: data_noise is None")
+                loaded_data = self._load_labeled_waveform(waveform)
+                x_batch.append(loaded_data)
             
             elif waveform["label"] == 'raw':
-                loaded_data_raw=self._load_raw_waveform(waveform)
-                x_batch.append(loaded_data_raw)
+                if self.data_raw is None:
+                    raise ValueError("Cannot process raw data: data_raw is None")
+                loaded_data = self._load_raw_waveform(waveform)
+                x_batch.append(loaded_data)
             else:
                 raise ValueError('Unknown label for the waveform: ', waveform['label'])
 
@@ -237,8 +243,7 @@ class BatchGenerator:
         x_batch = np.array(x_batch).astype(np.float32)
         crop_offsets = np.array(crop_offsets).astype(np.float32)
 
-        return self._preprocess(x_batch,crop_offsets)
-
+        return self._preprocess(x_batch, crop_offsets)
 
     def _load_labeled_waveform(self,waveform):
         '''
