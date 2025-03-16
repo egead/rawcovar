@@ -72,7 +72,6 @@ class BatchGenerator:
         freqmax (float): The upper frequency of the bandpass filter.
         last_axis (str): The last axis of the data. Can be either "channels" or "timesteps".
     """
-
     def __init__(
         self,
         batch_size=BATCH_SIZE,
@@ -101,7 +100,6 @@ class BatchGenerator:
         self.no_hdf5_path = no_hdf5_path
         self.raw_hdf5_path = raw_hdf5_path
         
-
         self.f = np.fft.fftfreq(
             self._get_ts(self.dataset_time_window), 1.0 / sampling_freq
         )
@@ -109,14 +107,30 @@ class BatchGenerator:
         # Parse metadata.
         self.waveforms = self._get_waveforms(batch_metadata)
 
-        f_eq = h5py.File(self.eq_hdf5_path, "r")
-        self.data_pick = f_eq.get("data/")
+        self.data_pick = None
+        self.data_noise = None
+        self.data_raw = None
 
-        f_no = h5py.File(self.no_hdf5_path, "r")
-        self.data_noise = f_no.get("data/")
-
-        f_raw = h5py.File(self.raw_hdf5_path,'r')
-        self.data_raw = f_raw.get("data/")
+        if raw_hdf5_path:
+            try:
+                f_raw = h5py.File(self.raw_hdf5_path, 'r')
+                self.data_raw = f_raw.get("data/")
+            except Exception as e:
+                print(f"Warning: Could not open raw HDF5 file: {e}")
+        
+        if eq_hdf5_path:
+            try:
+                f_eq = h5py.File(self.eq_hdf5_path, "r")
+                self.data_pick = f_eq.get("data/")
+            except Exception as e:
+                print(f"Warning: Could not open eq HDF5 file: {e}")
+        
+        if no_hdf5_path:
+            try:
+                f_no = h5py.File(self.no_hdf5_path, "r")
+                self.data_noise = f_no.get("data/")
+            except Exception as e:
+                print(f"Warning: Could not open no HDF5 file: {e}")
 
         self.x_batch = None
         self.y_batch = None
@@ -413,7 +427,12 @@ class DataGenerator(Sequence):
         model_time_window=30.0,
         sampling_freq=SAMPLING_FREQ,
         active_chunks=[],
-        *args,
+        eq_hdf5_path=None,
+        no_hdf5_path=None,
+        raw_hdf5_path=None,
+        last_axis="channels",
+        freqmin=FREQMIN,
+        freqmax=FREQMAX,
         **kwargs
     ):
         self.processed_hdf5_path = processed_hdf5_path
@@ -424,10 +443,21 @@ class DataGenerator(Sequence):
         self.model_time_window = model_time_window
         self.sampling_freq = sampling_freq
         self.active_chunks = active_chunks
-        self.bg_args = args
-        self.bg_kwargs = kwargs
+        self.bg_kwargs = {
+            "freqmin": freqmin,
+            "freqmax": freqmax,
+            "last_axis": last_axis
+        }
+        
+        if eq_hdf5_path is not None:
+            self.bg_kwargs["eq_hdf5_path"] = eq_hdf5_path        
+        if no_hdf5_path is not None:
+            self.bg_kwargs["no_hdf5_path"] = no_hdf5_path
+        if raw_hdf5_path is not None:
+            self.bg_kwargs["raw_hdf5_path"] = raw_hdf5_path
+        
+        self.bg_kwargs.update(kwargs)
         self.chunk_batch_counts = self.get_chunk_batch_counts()
-
         if not exists(self.processed_hdf5_path):
             self._render_dataset()
         
