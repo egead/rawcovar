@@ -218,19 +218,19 @@ class BatchGenerator:
         for waveform in batch_waveforms:
             if waveform["label"] == 'eq':
                 if self.data_pick is None:
-                    raise ValueError("Cannot process earthquake data: data_pick is None")
+                    raise ValueError("Can't process event data: data_pick is None")
                 loaded_data = self._load_labeled_waveform(waveform)
                 x_batch.append(loaded_data)
 
             elif waveform["label"] == 'no':
                 if self.data_noise is None:
-                    raise ValueError("Cannot process noise data: data_noise is None")
+                    raise ValueError("Can't process noise data: data_noise is None")
                 loaded_data = self._load_labeled_waveform(waveform)
                 x_batch.append(loaded_data)
             
             elif waveform["label"] == 'raw':
                 if self.data_raw is None:
-                    raise ValueError("Cannot process raw data: data_raw is None")
+                    raise ValueError("Can't process raw data: data_raw is None")
                 loaded_data = self._load_raw_waveform(waveform)
                 x_batch.append(loaded_data)
             else:
@@ -245,23 +245,29 @@ class BatchGenerator:
 
         return self._preprocess(x_batch, crop_offsets)
 
-    def _load_labeled_waveform(self,waveform):
+    def _load_labeled_waveform(self, waveform):
         '''
         Loads waveform from labeled datasets such as STEAD or INSTANCE.
         '''
         try: 
-            data_source = self.data_pick if waveform['label']=='eq' else self.data_noise
+            if waveform['label'] == 'eq':
+                if self.data_pick is None:
+                    raise ValueError(f"Can't load event data: data_pick is None")
+                data_source = self.data_pick
+            else:  # 'no' label
+                if self.data_noise is None:
+                    raise ValueError(f"Can't load noise data: data_noise is None")
+                data_source = self.data_noise
 
             if self.last_axis == 'channels':
                 return data_source[waveform['trace_name'][:]]
             elif self.last_axis == 'timesteps':
-                return data_source[waveform['trace_name'][:]].T # "If last_axis was given as timesteps axis in the dataset, make channels last."
+                return data_source[waveform['trace_name'][:]].T 
             else: 
                 raise ValueError(f"Invalid last_axis: {self.last_axis}. Valid values for last_axis: [channels, timesteps]")
 
         except KeyError:
             raise ValueError(f"Waveform {waveform['trace_name']} not found in {waveform['label']} data")
-
 
 
     def _load_raw_waveform(self,waveform):
