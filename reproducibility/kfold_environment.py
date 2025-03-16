@@ -635,24 +635,27 @@ class KFoldEnvironment:
             "subsampled_{}percent.hdf5".format(int(100 * self.subsampling_factor)),
         )
 
-        # Creates preprocessed dataset if not exists. Otherwise, loads it.
-        datagen = DataGenerator(
-            processed_hdf5_path=processed_hdf5_path,
-            chunk_metadata_list=self.chunk_metadata_list,
-            batch_size=self.batch_size,
-            eq_hdf5_path=self.eq_hdf5_path,
-            no_hdf5_path=self.no_hdf5_path,
-            raw_hdf5_path=self.raw_hdf5_path,
-            dataset_time_window=self.dataset_time_window,
-            model_time_window=self.model_time_window,
-            phase_ensured_crop_ratio=self.phase_ensured_crop_ratio,
-            last_axis=self.last_axis,
-            sampling_freq=self.sampling_freq,
-            active_chunks=active_chunks,
-            freqmin=self.freqmin,
-            freqmax=self.freqmax,
-        )
+        common_params = {
+            'processed_hdf5_path': processed_hdf5_path,
+            'chunk_metadata_list': self.chunk_metadata_list,
+            'batch_size': self.batch_size,
+            'dataset_time_window': self.dataset_time_window,
+            'model_time_window': self.model_time_window,
+            'phase_ensured_crop_ratio': self.phase_ensured_crop_ratio,
+            'last_axis': self.last_axis,
+            'sampling_freq': self.sampling_freq,
+            'active_chunks': active_chunks,
+            'freqmin': self.freqmin,
+            'freqmax': self.freqmax,
+        }
 
+        if self._dataset == "raw":
+            common_params['raw_hdf5_path'] = self.raw_hdf5_path
+        else:
+            common_params['eq_hdf5_path'] = self.eq_hdf5_path
+            common_params['no_hdf5_path'] = self.no_hdf5_path
+
+        datagen = DataGenerator(**common_params)
         return datagen
 
     def _seperate_train_and_validation_chunks(self, chunk_metadata_list):
