@@ -1,6 +1,5 @@
 import os
 from os.path import join as opj
-import pandas as pd
 from pathlib import Path
 from mseed2npy import ms2np
 
@@ -11,20 +10,20 @@ prepared_waveforms_path=opj(folder_path,'prepared_waveforms')
 prepared_wfs_daily_path = opj(prepared_waveforms_path,'day_by_day')
 
 source_path=prepared_wfs_daily_path
+file_list = []
 
 for root, dirs, files in os.walk(source_path):
     for filename in files: 
-        file_path=opj(root,filename)
-
-        rel_path=os.path.relpath(root,source_path)
-        out_folder=opj(output_path,rel_path)
-
-        os.makedirs(out_folder,exist_ok=True)
-
-        base,ext=os.path.splitext(filename)
         if ext=='.mseed':
+            file_path=opj(root,filename)
+
+            rel_path=os.path.relpath(root,source_path)
+            out_folder=opj(output_path,rel_path)
+            file_list.append(file_path)
+
+            os.makedirs(out_folder,exist_ok=True)
             new_filename= base+'_processed'+'.npy'
-    
             save_path=opj(out_folder,new_filename)
-    
+            base,ext=os.path.splitext(filename)
+
             ms2np(stream_path=file_path, save_path=save_path)
