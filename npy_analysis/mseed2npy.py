@@ -27,7 +27,7 @@ def create_time_windows(tr, start_time, end_time):
         
     return time_windows
 
-def tw_2_npy(processed_stream,stream_path,save_path):
+def tw_2_npy(processed_stream,save_path):
     '''
     Time Window to .NPY 
     Saves created timewindows to a .NPY file.
@@ -43,30 +43,33 @@ def tw_2_npy(processed_stream,stream_path,save_path):
     np.save(save_path,stream_numpy)
     print('Stream saved at: ', save_path)
 
+def merge_channels(file_list):
+    merged_stream = obspy.Stream()
 
-def ms2np(stream_path,save_path):
-    '''
-    PATH Parameter Examples:
-    stream_path="/home/ege/KAVV2324.mseed"
-    save_path=stream_path.split('/')[-1].split('.')[-2]+'.npy'
-    '''
-    stream = read(stream_path)
-    stream_copy=stream.copy()
-    stream_copy.merge()
+    for file_path in file_list:
+        stream = obspy.read(file_path)
+        merged_stream += stream
+
+    merged_stream.merge(method=0) # Uses method 0 for merging. Look at obspy documentation for more information.
+    
+    return merged_stream
+
+def ms2np(file_list, save_path):
+    processed_stream = merge_channels(file_list)
 
     # Resample all traces to a fixed rate if they’re inconsistent 
-    for tr in stream_copy:
-        tr.resample(100)
-    print("Initial Stream:",stream_copy)
+    #for tr in stream_copy:
+    #    tr.resample(100)
+    #print("Initial Stream:",stream_copy)
     
     # Re-create a stream with traces that are not masked. Masked traces were present in some data.
-    split_stream = stream_copy.split()
-    chosen_stream=obspy.Stream(traces=[tr for tr in split_stream if not np.ma.is_masked(tr.data)])
+    #split_stream = stream_copy.split()
+    #chosen_stream=obspy.Stream(traces=[tr for tr in split_stream if not np.ma.is_masked(tr.data)])
 
-    print("Stream chosen for preprocessing:", chosen_stream)
+    #print("Stream chosen for preprocessing:", chosen_stream)
     
     processed_stream=chosen_stream.copy()
     processed_stream.filter("bandpass", freqmin=1,freqmax=20)
     processed_stream.normalize()
     
-    tw_2_npy(processed_stream,stream_path,save_path)
+    tw_2_npy(processed_stream,save_path)

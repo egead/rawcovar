@@ -26,4 +26,7 @@ for root, dirs, files in os.walk(source_path):
             save_path=opj(out_folder,new_filename)
             base,ext=os.path.splitext(filename)
 
+            #   I need to modify ms2np so that it takes the merged_stream object. 
+            # A new function that takes the file_list and output_path would suffice ? 
+
             ms2np(stream_path=file_path, save_path=save_path)
