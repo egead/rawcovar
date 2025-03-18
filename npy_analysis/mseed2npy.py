@@ -1,3 +1,9 @@
+import obspy
+from obspy import read
+from obspy.core import UTCDateTime
+import h5py
+import numpy as np
+
 '''
 Functions in this module seperates any given mseed data into default 30 seconds waveforms, 
 applies preprocessing, and saves it as .npy file 
@@ -8,23 +14,24 @@ We aimed to make our evaluation procedures compatiblewith the review article whe
 For this purpose, we chose the model input time window to be 30 seconds, applied bandpass filtering (1 − 20Hz) 
 and normalized the waveforms along the time axis to make the standard deviation of each channel equal to 1.
 '''
-import obspy
-from obspy import read
-from obspy.core import UTCDateTime
-import h5py
-import numpy as np
-
 
 def create_time_windows(tr, start_time, end_time):
 
     time_windows=[]
     n_of_windows= int(end_time-start_time)/30
+
     for i in range(int(n_of_windows)):
+
         time_window=tr.slice(start_time+(i)*30,start_time + (i + 1) * 30 - (1 / tr.stats.sampling_rate)).data
         time_windows.append(time_window) 
+        
     return time_windows
 
 def tw_2_npy(processed_stream,stream_path,save_path):
+    '''
+    Time Window to .NPY 
+    Saves created timewindows to a .NPY file.
+    '''
 
     tw_lst=[]
     for i in range(len(processed_stream.traces)):
@@ -33,8 +40,6 @@ def tw_2_npy(processed_stream,stream_path,save_path):
 
     stream_numpy=np.stack(tw_lst, axis=-1)
 
-    #Outdated version, now save_path's are created beforehand
-    #save_path=stream_path.split('/')[-1].split('.')[-2]+'.npy'
     np.save(save_path,stream_numpy)
     print('Stream saved at: ', save_path)
 
@@ -45,17 +50,16 @@ def ms2np(stream_path,save_path):
     stream_path="/home/ege/KAVV2324.mseed"
     save_path=stream_path.split('/')[-1].split('.')[-2]+'.npy'
     '''
-    
-    # PRE-PROCESSING 
     stream = read(stream_path)
     stream_copy=stream.copy()
     stream_copy.merge()
+
     # Resample all traces to a fixed rate if they’re inconsistent 
     for tr in stream_copy:
         tr.resample(100)
     print("Initial Stream:",stream_copy)
     
-    #Re-create a stream with traces that are not masked.
+    # Re-create a stream with traces that are not masked. Masked traces were present in some data.
     split_stream = stream_copy.split()
     chosen_stream=obspy.Stream(traces=[tr for tr in split_stream if not np.ma.is_masked(tr.data)])
 
@@ -65,5 +69,4 @@ def ms2np(stream_path,save_path):
     processed_stream.filter("bandpass", freqmin=1,freqmax=20)
     processed_stream.normalize()
     
-    # SAVE STREAM AS .npy
     tw_2_npy(processed_stream,stream_path,save_path)

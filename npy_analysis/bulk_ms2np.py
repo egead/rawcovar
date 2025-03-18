@@ -25,6 +25,6 @@ for root, dirs, files in os.walk(source_path):
         if ext=='.mseed':
             new_filename= base+'_processed'+'.npy'
     
-            outfile_path=opj(out_folder,new_filename)
+            save_path=opj(out_folder,new_filename)
     
-            ms2np(file_path,outfile_path)
+            ms2np(stream_path=file_path, save_path=save_path)
