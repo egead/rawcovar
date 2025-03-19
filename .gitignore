@@ -158,6 +158,9 @@ data/
 checkpoints/
 models/
 ADVT/
+ADVT_SUBSET/
+ADVT_SUBSET_NPY/
+ADVT_NPYS/
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
