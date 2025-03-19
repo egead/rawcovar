@@ -1,6 +1,7 @@
 from tensorflow import keras
 import numpy as np
 import os
+import datetime
 from seismic_purifier.config import BATCH_SIZE
 from seismic_purifier.representation_learning_models import (
     RepresentationLearningSingleAutoencoder,
@@ -14,14 +15,12 @@ from tensorflow.keras.callbacks import LambdaCallback
 # Current configuration: Train and save model seperately for each station
 # ============================
 
-DATA_BASE_PATH = 'data/silivri'  # Base directory containing station folders
-CHECKPOINT_DIR = 'checkpoints'# Directory to save checkpoints
+DATA_BASE_PATH = '/home/ege/rawcovar/data/silivri'  # Base directory containing station folders
+CHECKPOINT_DIR = '/home/ege/rawcovar/checkpoints'# Directory to save checkpoints
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
-
-
 # Training parameters
-EPOCHS = 50
+EPOCHS = 1
 LEARNING_RATE = 1e-3
 
 # Ensure directories exist
@@ -41,13 +40,13 @@ def train_save_model(model,X_train, epochs,batch_size):
     # Define callbacks for saving checkpoints, early stopping.
 
     #Define callback for saving activations in each layer
-    #stored_activations = {}
-    #activation_callback = LambdaCallback(
-     #   on_epoch_end=lambda epoch, logs: [stored_activations.setdefault(layer.name, []).append(
-      #          tf.keras.Model(inputs=model.input,outputs=layer.output).predict(x_val)
-       #     ) for layer in model.layers if layer.name in layer_names
-        #]
-    #)
+    stored_activations = {}
+    activation_callback = LambdaCallback(
+        on_epoch_end=lambda epoch, logs: [stored_activations.setdefault(layer.name, []).append(
+                tf.keras.Model(inputs=model.input,outputs=layer.output).predict(x_val)
+            ) for layer in model.layers if layer.name in layer_names
+        ]
+    )
     callbacks = [
         keras.callbacks.ModelCheckpoint(
             filepath=os.path.join(CHECKPOINT_DIR, model.name+'_epoch_{epoch:02d}.h5'),
@@ -61,7 +60,7 @@ def train_save_model(model,X_train, epochs,batch_size):
             restore_best_weights=True,
             verbose=1
         )
-     #   ,activation_callback
+       ,activation_callback
     ]
 
     fit_result = model.fit(X_train, 
