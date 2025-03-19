@@ -15,4 +15,4 @@ for root, dirs, files in os.walk(source_path):
             file_path=opj(root,filename)
             file_list.append(file_path)
 
-        ms2np(file_list=file_list, output_dir=output_dir)
+ms2np(file_list=file_list, output_dir=output_dir)
