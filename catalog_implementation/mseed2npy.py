@@ -1,253 +1,178 @@
 import numpy as np
-import pandas as pd
-import os
 import obspy
 from obspy import UTCDateTime
+import os
+import pandas as pd
 
-def trim_stream_to_common_time(stream):
-    """
-    Find the latest start time and earliest end time and 
-    trim all traces in the stream to the common time range
-
-    Args:
-    stream (obspy.Stream): Input ObsPy stream
-    
-    Returns:
-    trimmed_stream (obspy.Steam): Trimmed ObsPy stream
-    """
-    start_times = [tr.stats.starttime for tr in stream.traces]
-    end_times = [tr.stats.endtime for tr in stream.traces]
-    
-    latest_start_time = max(start_times)
-    earliest_end_time = min(end_times)
-    print("Latest start time: ", latest_start_time)
-    print("Earliest end time: ", earliest_end_time)
-    
-    trimmed_stream = stream.copy()
-    for tr in trimmed_stream.traces:
-        tr.trim(starttime=latest_start_time, endtime=earliest_end_time)
-    
-    return trimmed_stream
-
-def normalize(x, axis):
-    """
-    Normalize array along specified axis, handling both regular and masked arrays.
-    
-    Args:
-    x (np.ndarray): Array to be normalized.
-    axis (int): Axis to be normalized.
-    
-    Returns:
-    np.ndarray: Normalized array.
-    """
-    norm = np.sqrt(np.sum(np.square(x), axis=axis, keepdims=True))
-    return x / (1e-37 + norm)
-
-def create_synchronized_labels(station_arrivals_path, start_time, sampling_rate, 
-                                window_length=30, samples_per_window=3000,
-                                n_windows=None, specific_station=None):
-    """
-    Create earthquake labels synchronized with preprocessed X data windows.
-    
-    Parameters:
-    -----------
-    station_arrivals_path : str
-        Path to station arrivals CSV
-    start_time : UTCDateTime
-        Start time of the preprocessed data
-    sampling_rate : float
-        Sampling rate of the data
-    window_length : int, optional
-        Length of each time window in seconds (default: 30)
-    samples_per_window : int, optional
-        Number of samples in each window (default: 3000)
-    n_windows : int, optional
-        Number of windows to create labels for
-    specific_station : str, optional
-        Specific station to filter arrivals
-    
-    Returns:
-    --------
-    precise_labels : np.ndarray
-        2D array of precise labels for each window
-    condensed_labels : np.ndarray
-        1D array of binary labels for each window
-    """
-    station_arrivals = pd.read_csv(station_arrivals_path)
-    station_arrivals['arrival_time'] = pd.to_datetime(station_arrivals['arrival_time'])
-    
-    if specific_station:
-        station_arrivals = station_arrivals[station_arrivals['station_name'] == specific_station]
-    
-    precise_labels = np.zeros((n_windows, samples_per_window), dtype=int)
-    condensed_labels = np.zeros(n_windows, dtype=int)
-    
-    sampling_rate_windows = samples_per_window / window_length
-    
-    #Mark the precise and condensed labels
-    for _, arrival in station_arrivals.iterrows():
-        arrival_time = UTCDateTime(arrival['arrival_time'])
-        
-        time_since_start = arrival_time - start_time
-        
-        #Determine which window this arrival falls into
-        time_window_index = int(time_since_start // window_length)
-        
-        #Skip if outside the valid window range
-        if time_window_index < 0 or time_window_index >= n_windows:
-            continue
-        
-        # Calculate precise sample within the time window
-        time_within_window = time_since_start % window_length
-        sample_index = int(time_within_window * sampling_rate_windows)
-        
-        if 0 <= sample_index < samples_per_window:
-            precise_labels[time_window_index, sample_index] = 1
-            condensed_labels[time_window_index] = 1
-    
-    return precise_labels, condensed_labels
-
-def filter_labels_by_nan_windows(X_data, y_precise, y_condensed):
-    """
-    Filter out windows from Y labels that correspond to NaN windows in X data.
-    
-    Parameters:
-    -----------
-    X_data : np.ndarray
-        Preprocessed seismic data with potential NaN windows
-    y_precise : np.ndarray
-        Original precise labels for all windows
-    y_condensed : np.ndarray
-        Original condensed labels for all windows
-    
-    Returns:
-    --------
-    X_filtered : np.ndarray
-        Filtered X data without NaN windows
-    y_precise_filtered : np.ndarray
-        Filtered precise labels corresponding to non-NaN windows
-    y_condensed_filtered : np.ndarray
-        Filtered condensed labels corresponding to non-NaN windows
-    """
-    nan_windows = np.isnan(X_data).any(axis=(1, 2)) #MAJOR PROBLEM HERE
-    print(nan_windows)
-    valid_window_mask = ~nan_windows #~ inverts the mask
-    
-    #Filter data by boolean masking
-    X_filtered = X_data[valid_window_mask]
-    y_precise_filtered = y_precise[valid_window_mask]
-    y_condensed_filtered = y_condensed[valid_window_mask]
-    
-    return X_filtered, y_precise_filtered, y_condensed_filtered
 
 def preprocess_stream(stream, output_dir=None, window_length=30, freqmin=1, freqmax=20):
-    """
-    Preprocess seismic waveform stream with advanced windowing and processing.
-    
-    Args:
-    stream (obspy.Stream): Input ObsPy stream
-    output_dir (str, optional): Directory to save numpy file
-    window_length (int, optional): Length of time window in seconds
-    freqmin (float, optional): Minimum frequency for bandpass filter
-    freqmax (float, optional): Maximum frequency for bandpass filter
-    
-    Returns:
-    np.ndarray: Preprocessed and windowed waveform data
-    """
-    stream = trim_stream_to_common_time(stream)
 
-    sampling_rates = [tr.stats.sampling_rate for tr in stream.traces]
-    if len(set(sampling_rates)) > 1:
-        raise ValueError("Inconsistent sampling rates across traces")
-    sampling_rate = sampling_rates[0]
+    stream = trim_stream_to_common_time(stream)
     
-    start_times = [tr.stats.starttime for tr in stream.traces]
-    end_times = [tr.stats.endtime for tr in stream.traces]
+    sampling_rate = stream[0].stats.sampling_rate
+    latest_start_time = max([tr.stats.starttime for tr in stream])
+    earliest_end_time = min([tr.stats.endtime for tr in stream])
     
-    # Use the latest start time and earliest end time
-    latest_start_time = max(start_times)
-    earliest_end_time = min(end_times)
-    
-    # Compute window parameters
     common_duration = earliest_end_time - latest_start_time
-    n_windows = int(common_duration / window_length)
+    n_potential_windows = int(common_duration / window_length)
     
-    # Collect aligned windows
-    aligned_windows_by_trace = []
-    for tr in stream.traces:
-        windows = []
-        for i in range(n_windows):
+    print(f"Processing {n_potential_windows} potential windows...")
+    
+    windows_good_for_all_traces = []
+    
+    for i in range(n_potential_windows):
+        window_is_good_for_all = True
+        
+        # Check the window for all traces
+        for tr in stream.traces:
             window_start = latest_start_time + (i * window_length)
             window_end = window_start + window_length - (1 / sampling_rate)
             
             window_trace = tr.slice(window_start, window_end)
             window_data = window_trace.data
             
-            # Compute frequency array
-            f = np.fft.fftfreq(len(window_data), d=1/sampling_rate)
-            
-            # Convert to Fourier domain
-            xw = np.fft.fft(window_data)
-            
-            # Apply bandpass filtering in frequency domain
-            mask = (np.abs(f) < freqmin) | (np.abs(f) > freqmax)
-            xw[mask] = 0
-            
-            # Convert back to time domain
-            processed_window = np.real(np.fft.ifft(xw)).astype(np.float32)
-            
-            # Demean
-            processed_window -= np.mean(processed_window)
-            
-            # Normalize
-            processed_window = normalize(processed_window, axis=0)
-            
-            windows.append(processed_window)
+            if not check_if_window_is_good(window_data, expected_length=int(window_length * sampling_rate)):
+                window_is_good_for_all = False
+                break
         
-        aligned_windows_by_trace.append(np.array(windows))
+        if window_is_good_for_all:
+            windows_good_for_all_traces.append(i)
     
-    # Stack all time windows
-    stream_numpy = np.stack(aligned_windows_by_trace, axis=-1)
+    print(f"  Found {len(windows_good_for_all_traces)} windows that are good for all traces")
     
+    # Process the windows that are good for all traces
+    good_windows_by_trace = []
+    
+    for tr_idx, tr in enumerate(stream.traces):
+        trace_windows = []
+        
+        for window_idx in windows_good_for_all_traces:
+            window_start = latest_start_time + (window_idx * window_length)
+            window_end = window_start + window_length - (1 / sampling_rate)
+            
+            window_trace = tr.slice(window_start, window_end)
+            window_data = window_trace.data
+            
+            # Extract data if it's a masked array
+            if np.ma.is_masked(window_data):
+                window_data = window_data.data
+            
+            try:
+                f = np.fft.fftfreq(len(window_data), d=1/sampling_rate)
+                xw = np.fft.fft(window_data)
+                mask = (np.abs(f) < freqmin) | (np.abs(f) > freqmax)
+                xw[mask] = 0
+                processed_window = np.real(np.fft.ifft(xw)).astype(np.float32)
+                processed_window -= np.mean(processed_window)
+                processed_window = normalize(processed_window, axis=0)
+                
+                trace_windows.append(processed_window)
+                    
+            except Exception as e:
+                print(f"  Processing failed for window {window_idx} from trace {tr_idx}: {e}")
+                raise e  # Reraise to debug issues
+        
+        good_windows_by_trace.append(np.array(trace_windows))
+    
+    # Stack into final array
+    stream_numpy = np.stack(good_windows_by_trace, axis=-1)
+    
+    print(f"\nSummary:")
+    print(f"  Started with {n_potential_windows} potential windows")
+    print(f"  Kept {len(windows_good_for_all_traces)} good windows ({100*len(windows_good_for_all_traces)/n_potential_windows:.1f}%)")
+    print(f"  Final shape: {stream_numpy.shape}")
+    
+    # Save if requested
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
-        new_filename = (f"{stream[0].stats.network}.{stream[0].stats.station}."
-                        f"{latest_start_time.strftime('%Y%m%d_%H%M%S')}.npy")
-        save_path = os.path.join(output_dir, new_filename)
+        filename = f"{stream[0].stats.network}.{stream[0].stats.station}.{latest_start_time.strftime('%Y%m%d_%H%M%S')}.npy"
+        save_path = os.path.join(output_dir, filename)
         np.save(save_path, stream_numpy)
-        print('Stream saved at:', save_path)
+        print(f'  Saved to: {save_path}')
     
-    print(f'Shape of saved data: {stream_numpy.shape}')
+    # Return the indices of windows we kept
+    return stream_numpy, windows_good_for_all_traces
+
+
+def check_if_window_is_good(window_data, expected_length):
+    """
+    Checks to see if a window is usable.
+    Returns True if the window is "good", False if it should be skipped.
+    """
+    # Check 1: Is it a masked array with masked values?
+    if np.ma.is_masked(window_data):
+        if window_data.mask.any():
+            return False
+        # If it's masked but has no actual masked values, extract the data
+        window_data = window_data.data
     
-    return stream_numpy
+    # Check 2: Does it have NaN values?
+    if np.isnan(window_data).any():
+        return False
+    
+    # Check 3: Does it have the expected length?
+    if len(window_data) != expected_length:
+        return False
+    
+    # Check 4: Is it all zeros? (indicates missing data)
+    if np.all(window_data == 0):
+        return False
+    
+    # Check 5: Does it have infinite values?
+    if np.isinf(window_data).any():
+        return False
+    
+    return True
+
+
+def create_synchronized_labels(station_arrivals_path, start_time, sampling_rate, 
+                                    window_indices_kept, window_length=30, 
+                                    samples_per_window=3000, specific_station=None):
+
+    station_arrivals = pd.read_csv(station_arrivals_path)
+    station_arrivals['arrival_time'] = pd.to_datetime(station_arrivals['arrival_time'])
+    
+    if specific_station:
+        station_arrivals = station_arrivals[station_arrivals['station_name'] == specific_station]
+    
+    n_kept_windows = len(window_indices_kept)
+    precise_labels = np.zeros((n_kept_windows, samples_per_window), dtype=int)
+    
+    for _, arrival in station_arrivals.iterrows():
+        arrival_time = UTCDateTime(arrival['arrival_time'])
+        
+        # Calculate which window this arrival falls into
+        time_since_start = arrival_time - start_time
+        window_index = int(time_since_start / window_length)
+        
+        # Check if this window was kept
+        if window_index in window_indices_kept:
+            # Find the position in our kept windows array
+            kept_position = window_indices_kept.index(window_index)
+            
+            # Calculate sample position within the window
+            time_in_window = time_since_start - (window_index * window_length)
+            sample_in_window = int(time_in_window * sampling_rate)
+            
+            # Mark the arrival if it's within bounds
+            if 0 <= sample_in_window < samples_per_window:
+                precise_labels[kept_position, sample_in_window] = 1
+    
+    condensed_labels = (precise_labels.sum(axis=1) > 0).astype(int)
+    
+    print(f"\nLabel summary:")
+    print(f"  Created labels for {n_kept_windows} windows")
+    print(f"  Windows with earthquakes: {condensed_labels.sum()}")
+    
+    return precise_labels, condensed_labels
+
 
 def integrate_preprocessing_and_labeling(stream, station_arrivals_path, output_dir=None):
-    """
-    Comprehensive preprocessing function that combines MiniSEED processing, 
-    label creation, and NaN window filtering.
-    
-    Parameters:
-    -----------
-    stream : obspy.Stream
-        Input seismic waveform stream
-    station_arrivals_path : str
-        Path to station arrivals CSV
-    output_dir : str, optional
-        Directory to save processed data
-    
-    Returns:
-    --------
-    X_data : np.ndarray
-        Preprocessed and synchronized seismic data
-    y_precise : np.ndarray
-        Precise earthquake labels
-    y_condensed : np.ndarray
-        Condensed earthquake labels
-    """
     start_time = stream[0].stats.starttime
     sampling_rate = stream[0].stats.sampling_rate
     
-    X_data = preprocess_stream(
+    # Process the stream
+    X_data, window_indices_kept = preprocess_stream(
         stream, 
         output_dir=output_dir, 
         window_length=30, 
@@ -255,16 +180,39 @@ def integrate_preprocessing_and_labeling(stream, station_arrivals_path, output_d
         freqmax=20
     )
     
+    # Create labels
     y_precise, y_condensed = create_synchronized_labels(
         station_arrivals_path, 
         start_time, 
         sampling_rate,
-        n_windows=X_data.shape[0],
+        window_indices_kept,
+        #n_windows=X_data.shape[0],
         samples_per_window=X_data.shape[1]
     )
     
-    X_filtered, y_precise_filtered, y_condensed_filtered = filter_labels_by_nan_windows(
-        X_data, y_precise, y_condensed
-    )
+    print(f"\nFinal results:")
+    print(f"  X shape: {X_data.shape}")
+    print(f"  y_precise shape: {y_precise.shape}")
+    print(f"  y_condensed shape: {y_condensed.shape}")
+    print(f"  Everything is aligned and ready.")
     
-    return X_filtered, y_precise_filtered, y_condensed_filtered
+    return X_data, y_precise, y_condensed
+
+
+def trim_stream_to_common_time(stream):
+    start_times = [tr.stats.starttime for tr in stream.traces]
+    end_times = [tr.stats.endtime for tr in stream.traces]
+    
+    latest_start_time = max(start_times)
+    earliest_end_time = min(end_times)
+    
+    trimmed_stream = stream.copy()
+    for tr in trimmed_stream.traces:
+        tr.trim(starttime=latest_start_time, endtime=earliest_end_time)
+    
+    return trimmed_stream
+
+
+def normalize(x, axis):
+    norm = np.sqrt(np.sum(np.square(x), axis=axis, keepdims=True))
+    return x / (1e-37 + norm)
