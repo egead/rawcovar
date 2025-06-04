@@ -161,8 +161,8 @@ ADVT/
 ADVT_SUBSET/
 ADVT_SUBSET_NPY/
 ADVT_NPYS/
-catalog_implementation/processed_data
-catalog_implementation/raw_mseeds
+catalog_implementation/processed_data/
+catalog_implementation/raw_mseeds/
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
