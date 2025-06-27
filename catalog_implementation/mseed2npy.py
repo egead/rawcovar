@@ -5,16 +5,17 @@ import os
 import pandas as pd
 
 
-def preprocess_stream(stream, output_dir=None, window_length=30, freqmin=1, freqmax=20):
+def preprocess_stream(stream, output_dir=None, window_length=30, freqmin=1, freqmax=20, padding=2.5):
 
     stream = trim_stream_to_common_time(stream)
     
     sampling_rate = stream[0].stats.sampling_rate
+    padded_window_length = window_length+ 2*padding #Should be 35 seconds, to achieve window_length=30 in the end etc.
     latest_start_time = max([tr.stats.starttime for tr in stream])
     earliest_end_time = min([tr.stats.endtime for tr in stream])
     
     common_duration = earliest_end_time - latest_start_time
-    n_potential_windows = int(common_duration / window_length)
+    n_potential_windows = int(common_duration- 2*padding / window_length) #Total of padding x 2 sec data loss
     
     print(f"Processing {n_potential_windows} potential windows...")
     
@@ -23,15 +24,15 @@ def preprocess_stream(stream, output_dir=None, window_length=30, freqmin=1, freq
     for i in range(n_potential_windows):
         window_is_good_for_all = True
         
-        # Check the window for all traces
+        # Check the padded window for all traces
         for tr in stream.traces:
             window_start = latest_start_time + (i * window_length)
-            window_end = window_start + window_length - (1 / sampling_rate)
+            window_end = window_start + padded_window_length
             
             window_trace = tr.slice(window_start, window_end)
             window_data = window_trace.data
             
-            if not check_if_window_is_good(window_data, expected_length=int(window_length * sampling_rate)):
+            if not check_if_window_is_good(window_data, expected_length=int(padded_window_length * sampling_rate)):
                 window_is_good_for_all = False
                 break
         
@@ -48,7 +49,7 @@ def preprocess_stream(stream, output_dir=None, window_length=30, freqmin=1, freq
         
         for window_idx in windows_good_for_all_traces:
             window_start = latest_start_time + (window_idx * window_length)
-            window_end = window_start + window_length - (1 / sampling_rate)
+            window_end = window_start + padded_window_length
             
             window_trace = tr.slice(window_start, window_end)
             window_data = window_trace.data
@@ -63,6 +64,10 @@ def preprocess_stream(stream, output_dir=None, window_length=30, freqmin=1, freq
                 mask = (np.abs(f) < freqmin) | (np.abs(f) > freqmax)
                 xw[mask] = 0
                 processed_window = np.real(np.fft.ifft(xw)).astype(np.float32)
+                #Remove padding
+                samples_to_crop = int(padding*sampling_rate)
+                processed_window = processed_window[samples_to_crop:-samples_to_crop]
+
                 processed_window -= np.mean(processed_window)
                 processed_window = normalize(processed_window, axis=0)
                 
@@ -126,7 +131,7 @@ def check_if_window_is_good(window_data, expected_length):
 
 
 def create_synchronized_labels(station_arrivals_path, start_time, sampling_rate, 
-                                    window_indices_kept, window_length=30, 
+                                    window_indices_kept, window_length=30, padding=2.5,
                                     samples_per_window=3000, specific_station=None):
 
     station_arrivals = pd.read_csv(station_arrivals_path)
@@ -145,18 +150,17 @@ def create_synchronized_labels(station_arrivals_path, start_time, sampling_rate,
         time_since_start = arrival_time - start_time
         window_index = int(time_since_start / window_length)
         
-        # Check if this window was kept
         if window_index in window_indices_kept:
-            # Find the position in our kept windows array
             kept_position = window_indices_kept.index(window_index)
             
             # Calculate sample position within the window
             time_in_window = time_since_start - (window_index * window_length)
-            sample_in_window = int(time_in_window * sampling_rate)
-            
-            # Mark the arrival if it's within bounds
-            if 0 <= sample_in_window < samples_per_window:
-                precise_labels[kept_position, sample_in_window] = 1
+            adjusted_time_in_window = time_in_window - padding            
+            if 0 <= adjusted_time_in_window < window_length:
+                sample_in_window = int(adjusted_time_in_window * sampling_rate)
+                
+                if 0 <= sample_in_window < samples_per_window:
+                    precise_labels[kept_position, sample_in_window] = 1
     
     condensed_labels = (precise_labels.sum(axis=1) > 0).astype(int)
     
@@ -167,7 +171,7 @@ def create_synchronized_labels(station_arrivals_path, start_time, sampling_rate,
     return precise_labels, condensed_labels
 
 
-def integrate_preprocessing_and_labeling(stream, station_arrivals_path, output_dir=None):
+def integrate_preprocessing_and_labeling(stream, station_arrivals_path, output_dir=None,padding=2.5):
     start_time = stream[0].stats.starttime
     sampling_rate = stream[0].stats.sampling_rate
     
