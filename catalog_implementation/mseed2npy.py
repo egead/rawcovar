@@ -5,7 +5,7 @@ import os
 import pandas as pd
 
 
-def preprocess_stream(stream, output_dir=None, window_length=30, freqmin=1, freqmax=20, padding=2.5):
+def preprocess_stream(stream, output_dir=None, window_length=30, freqmin=1, freqmax=20, padding=3):
 
     stream = trim_stream_to_common_time(stream)
     
@@ -15,8 +15,7 @@ def preprocess_stream(stream, output_dir=None, window_length=30, freqmin=1, freq
     earliest_end_time = min([tr.stats.endtime for tr in stream])
     
     common_duration = earliest_end_time - latest_start_time
-    n_potential_windows = int(common_duration- 2*padding / window_length) #Total of padding x 2 sec data loss
-    
+    n_potential_windows = int((common_duration - padded_window_length) / window_length)    
     print(f"Processing {n_potential_windows} potential windows...")
     
     windows_good_for_all_traces = []
@@ -32,7 +31,7 @@ def preprocess_stream(stream, output_dir=None, window_length=30, freqmin=1, freq
             window_trace = tr.slice(window_start, window_end)
             window_data = window_trace.data
             
-            if not check_if_window_is_good(window_data, expected_length=int(padded_window_length * sampling_rate)):
+            if not check_if_window_is_good(window_data):
                 window_is_good_for_all = False
                 break
         
@@ -66,7 +65,7 @@ def preprocess_stream(stream, output_dir=None, window_length=30, freqmin=1, freq
                 processed_window = np.real(np.fft.ifft(xw)).astype(np.float32)
                 #Remove padding
                 samples_to_crop = int(padding*sampling_rate)
-                processed_window = processed_window[samples_to_crop:-samples_to_crop]
+                processed_window = processed_window[samples_to_crop:-(samples_to_crop+1)]
 
                 processed_window -= np.mean(processed_window)
                 processed_window = normalize(processed_window, axis=0)
@@ -99,31 +98,23 @@ def preprocess_stream(stream, output_dir=None, window_length=30, freqmin=1, freq
     return stream_numpy, windows_good_for_all_traces
 
 
-def check_if_window_is_good(window_data, expected_length):
+def check_if_window_is_good(window_data):
     """
     Checks to see if a window is usable.
     Returns True if the window is "good", False if it should be skipped.
     """
-    # Check 1: Is it a masked array with masked values?
     if np.ma.is_masked(window_data):
         if window_data.mask.any():
             return False
         # If it's masked but has no actual masked values, extract the data
         window_data = window_data.data
     
-    # Check 2: Does it have NaN values?
     if np.isnan(window_data).any():
         return False
     
-    # Check 3: Does it have the expected length?
-    if len(window_data) != expected_length:
-        return False
-    
-    # Check 4: Is it all zeros? (indicates missing data)
     if np.all(window_data == 0):
         return False
     
-    # Check 5: Does it have infinite values?
     if np.isinf(window_data).any():
         return False
     
@@ -131,7 +122,7 @@ def check_if_window_is_good(window_data, expected_length):
 
 
 def create_synchronized_labels(station_arrivals_path, start_time, sampling_rate, 
-                                    window_indices_kept, window_length=30, padding=2.5,
+                                    window_indices_kept, window_length=30, padding=3,
                                     samples_per_window=3000, specific_station=None):
 
     station_arrivals = pd.read_csv(station_arrivals_path)
@@ -171,7 +162,7 @@ def create_synchronized_labels(station_arrivals_path, start_time, sampling_rate,
     return precise_labels, condensed_labels
 
 
-def integrate_preprocessing_and_labeling(stream, station_arrivals_path, output_dir=None,padding=2.5):
+def integrate_preprocessing_and_labeling(stream, station_arrivals_path, output_dir=None,padding=3):
     start_time = stream[0].stats.starttime
     sampling_rate = stream[0].stats.sampling_rate
     
