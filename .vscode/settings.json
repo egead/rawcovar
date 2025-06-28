@@ -9,5 +9,6 @@
           "console": "integratedTerminal",
           "cwd": "${workspaceFolder}/reproducibility"
       }
-  ]
+  ],
+  "explorer.compactFolders": false
 }
